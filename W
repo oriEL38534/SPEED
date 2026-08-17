@@ -4,16 +4,6 @@ local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
--- שמירת הגדרות ברירת המחדל של תאורת המשחק
-local defaultLighting = {
-	ClockTime = Lighting.ClockTime,
-	Brightness = Lighting.Brightness,
-	GlobalShadows = Lighting.GlobalShadows,
-	OutdoorAmbient = Lighting.OutdoorAmbient,
-	Ambient = Lighting.Ambient,
-	FogEnd = Lighting.FogEnd
-}
-
 -- משתנים לניהול מצב
 local infJumpActive = false
 local infJumpConnection = nil
@@ -128,7 +118,7 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
--- ניקוי הילות ותאורה
+-- ניקוי מוחלט של כל ההילות והאורות המותאמים אישית
 local function removeHighlights()
 	if highlightsFolder then
 		highlightsFolder:Destroy()
@@ -138,9 +128,18 @@ local function removeHighlights()
 		createdLight:Destroy()
 		createdLight = nil
 	end
+	-- ניקוי שאריות במידה וקיימות
+	for _, obj in ipairs(Workspace:GetDescendants()) do
+		if obj:IsA("Highlight") and (obj.Name == "BallSuperGlow" or obj.Name:find("_Glow")) then
+			obj:Destroy()
+		end
+		if obj:IsA("PointLight") and obj.Name == "BallLight" then
+			obj:Destroy()
+		end
+	end
 end
 
--- איתור אקטיבי של הכדור
+-- איתור הכדור
 local function findBall()
 	local names = {"Ball", "Football", "SoccerBall", "TPSBall"}
 	for _, v in ipairs(Workspace:GetDescendants()) do
@@ -155,7 +154,7 @@ local function findBall()
 	return nil
 end
 
--- יצירת הילות ותאורת אש מודגשת
+-- יצירת הילות ותאורת אש
 local function applyHighlights()
 	removeHighlights()
 	
@@ -163,30 +162,26 @@ local function applyHighlights()
 	highlightsFolder.Name = "DarkGlowHighlights"
 	highlightsFolder.Parent = Workspace
 
-	-- 1. איתור וחיזוק הילת הכדור + אור זרחני
 	local targetBall = findBall()
 	if targetBall then
-		-- הילה זוהרת
 		local ballHighlight = Instance.new("Highlight")
 		ballHighlight.Name = "BallSuperGlow"
-		ballHighlight.FillColor = Color3.fromRGB(255, 120, 0) -- אש כתומה זורחת
-		ballHighlight.FillTransparency = 0.1 -- שקיפות כמעט אפסית כדי שיהיה בולט
-		ballHighlight.OutlineColor = Color3.fromRGB(255, 255, 0) -- צהוב בוהק
+		ballHighlight.FillColor = Color3.fromRGB(255, 120, 0)
+		ballHighlight.FillTransparency = 0.1
+		ballHighlight.OutlineColor = Color3.fromRGB(255, 255, 0)
 		ballHighlight.OutlineTransparency = 0
 		ballHighlight.Parent = highlightsFolder
 		ballHighlight.Adornee = targetBall
 
-		-- פנס פנימי בתוך הכדור שמפזר אור סביבו
 		local light = Instance.new("PointLight")
 		light.Name = "BallLight"
 		light.Color = Color3.fromRGB(255, 140, 0)
-		light.Range = 35 -- טווח תאורה רחב
-		light.Brightness = 10 -- עוצמת תאורה חזקה מאוד
+		light.Range = 35
+		light.Brightness = 10
 		light.Parent = targetBall
 		createdLight = light
 	end
 
-	-- 2. הילה לכל השחקנים (תכלת זוהר)
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character then
 			local plrHighlight = Instance.new("Highlight")
@@ -210,7 +205,7 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
 -- שליטה בגרפיקת המשחק
-createButton("🌒 כהה (עם כדור זרחני עוצמתי)", 215, function()
+createButton("🌒 כהה (עם כדור זרחני)", 215, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
@@ -230,14 +225,17 @@ createButton("☀️ גרפיקה בהירה (Bright)", 260, function()
 	Lighting.FogEnd = 100000
 end)
 
+-- איפוס מלא לגרפיקה המקורית של המשחק
 createButton("🔄 החזר גרפיקה לרגיל", 305, function()
 	removeHighlights()
-	Lighting.ClockTime = defaultLighting.ClockTime
-	Lighting.Brightness = defaultLighting.Brightness
-	Lighting.GlobalShadows = defaultLighting.GlobalShadows
-	Lighting.OutdoorAmbient = defaultLighting.OutdoorAmbient
-	Lighting.Ambient = defaultLighting.Ambient
-	Lighting.FogEnd = defaultLighting.FogEnd
+	
+	-- ערכי ברירת המחדל התקניים של רובלוקס
+	Lighting.ClockTime = 14.5
+	Lighting.Brightness = 2
+	Lighting.GlobalShadows = true
+	Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+	Lighting.Ambient = Color3.fromRGB(70, 70, 70)
+	Lighting.FogEnd = 10000
 end)
 
 -- כפתור איפוס הכל
