@@ -36,8 +36,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 450) -- הוגדל להכיל את כפתור הספאם
-frame.Position = UDim2.new(0.5, -240, 0.2, 0)
+frame.Size = UDim2.new(0, 480, 0, 490) -- גובה מוגדל כדי להציג את כל האלמנטים
+frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -109,24 +109,24 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.85, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.13, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.1, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
 local leftList = Instance.new("UIListLayout")
-leftList.Padding = UDim.new(0, 8)
+leftList.Padding = UDim.new(0, 6)
 leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.85, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.13, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.1, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
 local rightList = Instance.new("UIListLayout")
-rightList.Padding = UDim.new(0, 8)
+rightList.Padding = UDim.new(0, 6)
 rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
@@ -162,18 +162,18 @@ local speedUpdateFunc, jumpUpdateFunc, fovUpdateFunc
 
 local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layoutOrder, onValueChange)
 	local container = Instance.new("Frame")
-	container.Size = UDim2.new(1, 0, 0, 42)
+	container.Size = UDim2.new(1, 0, 0, 40)
 	container.BackgroundTransparency = 1
 	container.LayoutOrder = layoutOrder
 	container.Parent = parent
 
 	local sliderLabel = Instance.new("TextLabel")
-	sliderLabel.Size = UDim2.new(1, 0, 0, 18)
+	sliderLabel.Size = UDim2.new(1, 0, 0, 16)
 	sliderLabel.Position = UDim2.new(0, 0, 0, 0)
 	sliderLabel.Text = titleText .. ": " .. tostring(defaultVal)
 	sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	sliderLabel.BackgroundTransparency = 1
-	sliderLabel.TextSize = 13
+	sliderLabel.TextSize = 12
 	sliderLabel.Font = Enum.Font.GothamMedium
 	sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
 	sliderLabel.Parent = container
@@ -181,8 +181,8 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 	local sliderBG = Instance.new("TextButton")
 	sliderBG.Text = ""
 	sliderBG.AutoButtonColor = false
-	sliderBG.Size = UDim2.new(1, 0, 0, 12)
-	sliderBG.Position = UDim2.new(0, 0, 0, 22)
+	sliderBG.Size = UDim2.new(1, 0, 0, 10)
+	sliderBG.Position = UDim2.new(0, 0, 0, 20)
 	sliderBG.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	sliderBG.BorderSizePixel = 0
 	sliderBG.Parent = container
