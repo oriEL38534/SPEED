@@ -5,7 +5,6 @@ local player = Players.LocalPlayer
 
 -- משתנים לניהול מצבים
 local spamEnabled = false
-local isSpamming = false
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -123,40 +122,46 @@ createButton("מהירות 100", 90, function() setSpeed(100) end)
 createButton("מהירות 200", 130, function() setSpeed(200) end)
 createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 
--- מנגנון ספאם: לחיצה על מקש R מריצה ספאם על מקש E
+-- יצירת כפתורי הספאם מראש לעדכון וויזואלי
+local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
+local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
+
+-- פונקציות להפעלה וכיבוי הספאם
+local function startSpam()
+	if not spamEnabled then
+		spamEnabled = true
+		spamBtn.Text = "✅ ספאם E פעיל [R]"
+		spamBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+		
+		task.spawn(function()
+			while spamEnabled do
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+				task.wait(0.03)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				task.wait(0.05)
+			end
+		end)
+	end
+end
+
+local function stopSpam()
+	spamEnabled = false
+	spamBtn.Text = "⚡ הפעל ספאם [R]"
+	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+end
+
+-- חיבור הלחיצות בכפתורי הממשק
+spamBtn.MouseButton1Click:Connect(startSpam)
+stopSpamBtn.MouseButton1Click:Connect(stopSpam)
+
+-- הפיכת מקש R למתג Toggle (הפעלה/כיבוי בלחיצה)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
-	if input.KeyCode == Enum.KeyCode.R and spamEnabled then
-		if not isSpamming then
-			isSpamming = true
-			task.spawn(function()
-				while isSpamming and spamEnabled do
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-					task.wait(0.03)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-					task.wait(0.05)
-				end
-			end)
+	if input.KeyCode == Enum.KeyCode.R then
+		if spamEnabled then
+			stopSpam()
+		else
+			startSpam()
 		end
 	end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-	if input.KeyCode == Enum.KeyCode.R then
-		isSpamming = false
-	end
-end)
-
--- כפתורי הפעלה וכיבוי
-local spamBtn = createButton("⚡ הפעל ספאם (מזניק R)", 215, function(btn)
-	spamEnabled = true
-	btn.Text = "✅ ספאם R->E פעיל"
-	btn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
-end)
-
-createButton("🔴 כבה ספאם", 255, function()
-	spamEnabled = false
-	isSpamming = false
-	spamBtn.Text = "⚡ הפעל ספאם (מזניק R)"
-	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end)
