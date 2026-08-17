@@ -1,34 +1,89 @@
+local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ContextActionService = game:GetService("ContextActionService")
-local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 -- משתנים לניהול מצב
 local infJumpActive = false
-local autoParryActive = false
-local autoParryConnection = nil
 local highlightsFolder = nil
 local createdLight = nil
 
--- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
+
+----------------------------------------------------
+-- הודעת פתיחה מונפשת (MY-SCRIPT)
+----------------------------------------------------
+if pGui:FindFirstChild("ScriptIntroGui") then
+	pGui.ScriptIntroGui:Destroy()
+end
+
+local introGui = Instance.new("ScreenGui")
+introGui.Name = "ScriptIntroGui"
+introGui.ResetOnSpawn = false
+introGui.Parent = pGui
+
+local introFrame = Instance.new("Frame")
+introFrame.Size = UDim2.new(0, 220, 0, 50)
+introFrame.Position = UDim2.new(0.5, -110, 0.12, 0)
+introFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+introFrame.BackgroundTransparency = 1
+introFrame.BorderSizePixel = 0
+introFrame.Parent = introGui
+
+local introCorner = Instance.new("UICorner")
+introCorner.CornerRadius = UDim.new(0, 8)
+introCorner.Parent = introFrame
+
+local introStroke = Instance.new("UIStroke")
+introStroke.Color = Color3.fromRGB(0, 170, 255)
+introStroke.Thickness = 1.5
+introStroke.Transparency = 1
+introStroke.Parent = introFrame
+
+local introLabel = Instance.new("TextLabel")
+introLabel.Size = UDim2.new(1, 0, 1, 0)
+introLabel.Text = "✨ MY-SCRIPT ✨"
+introLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+introLabel.TextTransparency = 1
+introLabel.BackgroundTransparency = 1
+introLabel.TextSize = 18
+introLabel.Font = Enum.Font.SourceSansBold
+introLabel.Parent = introFrame
+
+local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+task.spawn(function()
+	TweenService:Create(introFrame, tweenInfo, {BackgroundTransparency = 0.15}):Play()
+	TweenService:Create(introStroke, tweenInfo, {Transparency = 0}):Play()
+	TweenService:Create(introLabel, tweenInfo, {TextTransparency = 0}):Play()
+	
+	task.wait(3)
+	
+	TweenService:Create(introFrame, tweenInfo, {BackgroundTransparency = 1}):Play()
+	TweenService:Create(introStroke, tweenInfo, {Transparency = 1}):Play()
+	TweenService:Create(introLabel, tweenInfo, {TextTransparency = 1}):Play()
+	
+	task.wait(0.6)
+	introGui:Destroy()
+end)
+
+----------------------------------------------------
+-- תפריט ממשק משתמש (GUI)
+----------------------------------------------------
 if pGui:FindFirstChild("SpeedMenuGui") then
 	pGui.SpeedMenuGui:Destroy()
 end
 
--- יצירת הממשק הוויזואלי (ScreenGui)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת הראשית
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 460)
+frame.Size = UDim2.new(0, 220, 0, 420)
 frame.Position = UDim2.new(0.05, 0, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 frame.BorderSizePixel = 1
@@ -41,19 +96,17 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
 
--- כותרת
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "תפריט שליטה"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Text = "MY-SCRIPT MENU"
+title.TextColor3 = Color3.fromRGB(0, 170, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 16
 title.Font = Enum.Font.SourceSansBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
--- כפתור סגירה (X)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 40)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -64,7 +117,6 @@ closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = frame
 
--- כפתור צף להצגה/הסתרה
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 85, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
@@ -90,7 +142,6 @@ end
 closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
--- פונקציה לעדכון מהירות
 local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -99,7 +150,6 @@ local function setSpeed(newSpeed)
 	end
 end
 
--- פונקציית עזר ליצירת כפתורים
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.86, 0, 0, 32)
@@ -122,7 +172,6 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
--- ניקוי הילות
 local function removeHighlights()
 	if highlightsFolder then
 		highlightsFolder:Destroy()
@@ -142,52 +191,11 @@ local function removeHighlights()
 	end
 end
 
--- איתור מיועד ומדויק של הכדור ב-Blade Ball
-local function getActiveBall()
-	local ballsFolder = Workspace:FindFirstChild("Balls")
-	if ballsFolder then
-		for _, child in ipairs(ballsFolder:GetChildren()) do
-			if child:IsA("BasePart") and child.Transparency < 0.9 then
-				return child
-			end
-		end
-	end
-	-- חיפוש כללי במידה ואין תיקיית Balls
-	for _, v in ipairs(Workspace:GetDescendants()) do
-		if v:IsA("BasePart") and (v.Name == "Ball" or v.Name == "RealBall") then
-			return v
-		end
-	end
-	return nil
-end
-
--- יצירת הילות למצב כהה
 local function applyDarkHighlights()
 	removeHighlights()
-	
 	highlightsFolder = Instance.new("Folder")
 	highlightsFolder.Name = "GlowHighlights"
 	highlightsFolder.Parent = Workspace
-
-	local targetBall = getActiveBall()
-	if targetBall then
-		local ballHighlight = Instance.new("Highlight")
-		ballHighlight.Name = "BallSuperGlow"
-		ballHighlight.FillColor = Color3.fromRGB(255, 120, 0)
-		ballHighlight.FillTransparency = 0.1
-		ballHighlight.OutlineColor = Color3.fromRGB(255, 255, 0)
-		ballHighlight.OutlineTransparency = 0
-		ballHighlight.Parent = highlightsFolder
-		ballHighlight.Adornee = targetBall
-
-		local light = Instance.new("PointLight")
-		light.Name = "BallLight"
-		light.Color = Color3.fromRGB(255, 140, 0)
-		light.Range = 35
-		light.Brightness = 10
-		light.Parent = targetBall
-		createdLight = light
-	end
 
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character then
@@ -203,25 +211,11 @@ local function applyDarkHighlights()
 	end
 end
 
--- יצירת הילה שחורה כהה לשחקנים ולכדור
 local function applyBlackAura()
 	removeHighlights()
-	
 	highlightsFolder = Instance.new("Folder")
 	highlightsFolder.Name = "BlackAuraHighlights"
 	highlightsFolder.Parent = Workspace
-
-	local targetBall = getActiveBall()
-	if targetBall then
-		local ballBlackHighlight = Instance.new("Highlight")
-		ballBlackHighlight.Name = "Ball_BlackAura"
-		ballBlackHighlight.FillColor = Color3.fromRGB(0, 0, 0)
-		ballBlackHighlight.FillTransparency = 0.05
-		ballBlackHighlight.OutlineColor = Color3.fromRGB(0, 0, 0)
-		ballBlackHighlight.OutlineTransparency = 0
-		ballBlackHighlight.Parent = highlightsFolder
-		ballBlackHighlight.Adornee = targetBall
-	end
 
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character then
@@ -237,15 +231,15 @@ local function applyBlackAura()
 	end
 end
 
--- כפתורי מהירות
+----------------------------------------------------
+-- כפתורי שליטה
+----------------------------------------------------
 createButton("מהירות 30", 45, function() setSpeed(30) end)
 createButton("מהירות 100", 85, function() setSpeed(100) end)
 createButton("מהירות 200", 125, function() setSpeed(200) end)
 
--- כפתור Infinite Jump
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
--- מנגנון Infinite Jump
 local ACTION_NAME = "InfJumpAction"
 
 local function handleJumpAction(actionName, inputState, inputObject)
@@ -282,115 +276,26 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- כפתור AUTO PARRY
-local autoParryBtn = createButton("⚔️ Auto Parry: כבוי", 215, function() end)
-
--- ביצוע Parry קשיח דרך העכבר והמקלדת
-local function executeClickParry()
-	local vp = Workspace.CurrentCamera.ViewportSize
-	local centerX, centerY = vp.X / 2, vp.Y / 2
-
-	-- לחיצת עכבר במרכז המסך
-	VirtualInputManager:SendMouseButtonEvent(centerX, centerY, 0, true, game, 0)
-	task.wait(0.001)
-	VirtualInputManager:SendMouseButtonEvent(centerX, centerY, 0, false, game, 0)
-
-	-- לחיצה מקבילה על F
-	VirtualInputManager:SendKeyPressEvent(Enum.KeyCode.F, true, game)
-	task.wait(0.001)
-	VirtualInputManager:SendKeyPressEvent(Enum.KeyCode.F, false, game)
-end
-
-local function disableAutoParry()
-	autoParryActive = false
-	if autoParryConnection then
-		autoParryConnection:Disconnect()
-		autoParryConnection = nil
-	end
-	autoParryBtn.Text = "⚔️ Auto Parry: כבוי"
-	autoParryBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-end
-
-local function enableAutoParry()
-	disableAutoParry()
-	autoParryActive = true
-	autoParryBtn.Text = "✅ Auto Parry: פעיל"
-	autoParryBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
-
-	local lastParryTime = 0
-
-	autoParryConnection = RunService.PreRender:Connect(function()
-		if not autoParryActive then return end
-
-		local char = player.Character
-		if not char then return end
-		local root = char:FindFirstChild("HumanoidRootPart")
-		if not root then return end
-
-		local ball = getActiveBall()
-		if not ball then return end
-
-		local ballPos = ball.Position
-		local ballVel = ball.AssemblyLinearVelocity
-		local distance = (ballPos - root.Position).Magnitude
-		local speed = ballVel.Magnitude
-
-		-- בדיקת יעד
-		local targetVal = ball:FindFirstChild("target") or ball:FindFirstChild("Target")
-		local isTargetingMe = false
-		if targetVal then
-			if targetVal:IsA("ObjectValue") and targetVal.Value == char then
-				isTargetingMe = true
-			elseif targetVal:IsA("StringValue") and targetVal.Value == player.Name then
-				isTargetingMe = true
-			end
-		end
-
-		-- מרחק תגובה לפי מהירות
-		local parryThreshold = math.clamp(speed * 0.45, 18, 75)
-
-		if (isTargetingMe or distance <= parryThreshold) and distance <= 80 then
-			local directionToMe = (root.Position - ballPos).Unit
-			local ballMoveDir = ballVel.Unit
-			
-			-- אם הכדור נע לכיוון השחקן
-			if ballMoveDir:Dot(directionToMe) > 0.05 or distance < 20 or isTargetingMe then
-				if tick() - lastParryTime > 0.12 then
-					lastParryTime = tick()
-					executeClickParry()
-				end
-			end
-		end
-	end)
-end
-
-autoParryBtn.MouseButton1Click:Connect(function()
-	if autoParryActive then disableAutoParry() else enableAutoParry() end
-end)
-
--- שליטה בגרפיקת המשחק
-createButton("🌒 כהה (עם כדור זרחני)", 260, function()
+createButton("🌒 מצב כהה", 215, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
 	Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 90)
 	Lighting.Ambient = Color3.fromRGB(60, 60, 80)
-	
 	applyDarkHighlights()
 end)
 
-createButton("☀️ בהיר (אורה שחורה כהה)", 305, function()
+createButton("☀️ מצב בהיר", 260, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
 	Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
 	Lighting.Ambient = Color3.fromRGB(255, 255, 255)
 	Lighting.FogEnd = 100000
-	
 	applyBlackAura()
 end)
 
-createButton("🔄 החזר גרפיקה לרגיל", 350, function()
+createButton("🔄 החזר גרפיקה לרגיל", 305, function()
 	removeHighlights()
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2
@@ -400,13 +305,11 @@ createButton("🔄 החזר גרפיקה לרגיל", 350, function()
 	Lighting.FogEnd = 10000
 end)
 
--- כפתור איפוס הכל
-local resetAllBtn = createButton("🛑 איפוס הכל (מהירות+קפיצה+AutoParry)", 395, function() end)
+local resetAllBtn = createButton("🛑 איפוס הכל", 350, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
 resetAllBtn.MouseButton1Click:Connect(function()
 	removeHighlights()
 	disableInfJump()
-	disableAutoParry()
 	setSpeed(16)
 end)
