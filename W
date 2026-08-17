@@ -14,7 +14,7 @@ if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 
 ----------------------------------------------------
--- 1. יצירת הממשק הראשי (עם אלמנטים לבנים)
+-- 1. יצירת הממשק הראשי (עם אלמנטים בסגול)
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
@@ -29,7 +29,7 @@ screenGui.Parent = pGui
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 460, 0, 360)
 frame.Position = UDim2.new(0.5, -230, 0.25, 0)
-frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+frame.BackgroundColor3 = Color3.fromRGB(18, 16, 25)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
@@ -40,18 +40,18 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 10)
 frameCorner.Parent = frame
 
--- מסגרת לבנה עדינה סביב התפריט
+-- מסגרת סגולה ניאון
 local frameStroke = Instance.new("UIStroke")
-frameStroke.Color = Color3.fromRGB(240, 240, 255)
-frameStroke.Thickness = 1.8
+frameStroke.Color = Color3.fromRGB(170, 0, 255)
+frameStroke.Thickness = 2
 frameStroke.Parent = frame
 
--- כותרת לבנה מודגשת
+-- כותרת בסגול בהיר
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -40, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
 title.Text = "⚡ SPEED & JUMP HUB"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextColor3 = Color3.fromRGB(200, 130, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 17
 title.Font = Enum.Font.GothamBold
@@ -68,13 +68,13 @@ closeBtn.TextSize = 18
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.Parent = frame
 
--- כפתור פתיחה/סגירה עם קו לבן
+-- כפתור פתיחה/סגירה צף ממוסגר בסגול
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 90, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
 toggleBtn.Text = "⚡ תפריט"
 toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(28, 22, 38)
 toggleBtn.BorderSizePixel = 0
 toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.GothamBold
@@ -88,8 +88,8 @@ toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = toggleBtn
 
 local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(255, 255, 255)
-toggleStroke.Thickness = 1.2
+toggleStroke.Color = Color3.fromRGB(170, 0, 255)
+toggleStroke.Thickness = 1.5
 toggleStroke.Parent = toggleBtn
 
 local function toggleMenu()
@@ -133,14 +133,14 @@ local function setJumpPower(newPower)
 end
 
 ----------------------------------------------------
--- 4. בנאי Sliders & Buttons עם נגיעות לבנות
+-- 4. בנאי Sliders & Buttons עם גוון סגול
 ----------------------------------------------------
 local function createSlider(parent, titleText, minVal, maxVal, defaultVal, positionY, onValueChange)
 	local sliderLabel = Instance.new("TextLabel")
 	sliderLabel.Size = UDim2.new(1, 0, 0, 18)
 	sliderLabel.Position = UDim2.new(0, 0, 0, positionY)
 	sliderLabel.Text = titleText .. ": " .. tostring(defaultVal)
-	sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	sliderLabel.TextColor3 = Color3.fromRGB(240, 240, 255)
 	sliderLabel.BackgroundTransparency = 1
 	sliderLabel.TextSize = 13
 	sliderLabel.Font = Enum.Font.GothamMedium
@@ -152,7 +152,7 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, posit
 	sliderBG.AutoButtonColor = false
 	sliderBG.Size = UDim2.new(1, 0, 0, 12)
 	sliderBG.Position = UDim2.new(0, 0, 0, positionY + 22)
-	sliderBG.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+	sliderBG.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	sliderBG.BorderSizePixel = 0
 	sliderBG.Parent = parent
 
@@ -160,11 +160,11 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, posit
 	bgCorner.CornerRadius = UDim.new(1, 0)
 	bgCorner.Parent = sliderBG
 
-	-- פס מילוי בגוון לבן-כחלחל נקי
+	-- פס מילוי סגול זוהר
 	local fill = Instance.new("Frame")
 	local startScale = (defaultVal - minVal) / (maxVal - minVal)
 	fill.Size = UDim2.new(math.clamp(startScale, 0, 1), 0, 1, 0)
-	fill.BackgroundColor3 = Color3.fromRGB(230, 240, 255)
+	fill.BackgroundColor3 = Color3.fromRGB(170, 0, 255)
 	fill.BorderSizePixel = 0
 	fill.Parent = sliderBG
 
@@ -210,7 +210,7 @@ local function createButton(parent, text, positionY, onClick)
 	btn.Position = UDim2.new(0, 0, 0, positionY)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+	btn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	btn.BorderSizePixel = 0
 	btn.TextSize = 13
 	btn.Font = Enum.Font.GothamMedium
@@ -220,9 +220,8 @@ local function createButton(parent, text, positionY, onClick)
 	btnCorner.CornerRadius = UDim.new(0, 6)
 	btnCorner.Parent = btn
 
-	-- מסגרת לבנה עדינה לכפתורים
 	local btnStroke = Instance.new("UIStroke")
-	btnStroke.Color = Color3.fromRGB(80, 80, 100)
+	btnStroke.Color = Color3.fromRGB(90, 60, 130)
 	btnStroke.Thickness = 1
 	btnStroke.Parent = btn
 
@@ -261,7 +260,7 @@ local function disableInfJump()
 	infJumpActive = false
 	ContextActionService:UnbindAction(ACTION_NAME)
 	infJumpBtn.Text = "♾️ Infinite Jump: כבוי"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 end
 
 local function enableInfJump()
@@ -269,7 +268,7 @@ local function enableInfJump()
 	infJumpActive = true
 	ContextActionService:BindAction(ACTION_NAME, handleJumpAction, false, Enum.KeyCode.Space)
 	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(45, 120, 60)
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
 end
 
 infJumpBtn.MouseButton1Click:Connect(function()
@@ -277,7 +276,7 @@ infJumpBtn.MouseButton1Click:Connect(function()
 end)
 
 local resetAllBtn = createButton(leftCol, "🛑 איפוס הכל", 160, function() end)
-resetAllBtn.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
+resetAllBtn.BackgroundColor3 = Color3.fromRGB(140, 30, 50)
 
 ----------------------------------------------------
 -- 6. הוספת אלמנטים - עמודה שמאלית
@@ -327,11 +326,11 @@ korbloxBtn.MouseButton1Click:Connect(function()
 	korbloxActive = not korbloxActive
 	if korbloxActive then
 		korbloxBtn.Text = "✅ Korblox Leg: פעיל"
-		korbloxBtn.BackgroundColor3 = Color3.fromRGB(45, 120, 60)
+		korbloxBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
 		applyKorblox()
 	else
 		korbloxBtn.Text = "🦵 Korblox Leg: כבוי"
-		korbloxBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+		korbloxBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	end
 end)
 
@@ -340,11 +339,11 @@ headlessBtn.MouseButton1Click:Connect(function()
 	headlessActive = not headlessActive
 	if headlessActive then
 		headlessBtn.Text = "✅ Headless: פעיל"
-		headlessBtn.BackgroundColor3 = Color3.fromRGB(45, 120, 60)
+		headlessBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
 		applyHeadless()
 	else
 		headlessBtn.Text = "💀 Headless: כבוי"
-		headlessBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+		headlessBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	end
 end)
 
@@ -371,9 +370,9 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	korbloxActive = false
 	headlessActive = false
 	korbloxBtn.Text = "🦵 Korblox Leg: כבוי"
-	korbloxBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+	korbloxBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	headlessBtn.Text = "💀 Headless: כבוי"
-	headlessBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+	headlessBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	setSpeed(16)
 	setJumpPower(50)
 end)
@@ -386,7 +385,7 @@ player.CharacterAdded:Connect(function(char)
 end)
 
 ----------------------------------------------------
--- 7. מסך פתיחה (Intro)
+-- 7. מסך פתיחה בסגול (Intro)
 ----------------------------------------------------
 task.spawn(function()
 	local introGui = Instance.new("ScreenGui")
@@ -398,7 +397,7 @@ task.spawn(function()
 	introFrame.Size = UDim2.new(0, 340, 0, 140)
 	introFrame.Position = UDim2.new(0.5, 0, 0.45, 0)
 	introFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	introFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+	introFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 22)
 	introFrame.BorderSizePixel = 0
 	introFrame.ClipsDescendants = true
 	introFrame.Parent = introGui
@@ -408,8 +407,8 @@ task.spawn(function()
 	introCorner.Parent = introFrame
 
 	local introStroke = Instance.new("UIStroke")
-	introStroke.Color = Color3.fromRGB(255, 255, 255)
-	introStroke.Thickness = 2
+	introStroke.Color = Color3.fromRGB(170, 0, 255)
+	introStroke.Thickness = 2.5
 	introStroke.Parent = introFrame
 
 	local introLabel = Instance.new("TextLabel")
@@ -426,7 +425,7 @@ task.spawn(function()
 	subLabel.Size = UDim2.new(1, 0, 0.2, 0)
 	subLabel.Position = UDim2.new(0, 0, 0.45, 0)
 	subLabel.Text = "INITIALIZING..."
-	subLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
+	subLabel.TextColor3 = Color3.fromRGB(200, 130, 255)
 	subLabel.BackgroundTransparency = 1
 	subLabel.TextSize = 13
 	subLabel.Font = Enum.Font.GothamMedium
@@ -435,13 +434,13 @@ task.spawn(function()
 	local barBackground = Instance.new("Frame")
 	barBackground.Size = UDim2.new(0.85, 0, 0, 8)
 	barBackground.Position = UDim2.new(0.075, 0, 0.75, 0)
-	barBackground.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+	barBackground.BackgroundColor3 = Color3.fromRGB(30, 24, 42)
 	barBackground.BorderSizePixel = 0
 	barBackground.Parent = introFrame
 
 	local barFill = Instance.new("Frame")
 	barFill.Size = UDim2.new(0, 0, 1, 0)
-	barFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	barFill.BackgroundColor3 = Color3.fromRGB(170, 0, 255)
 	barFill.BorderSizePixel = 0
 	barFill.Parent = barBackground
 
