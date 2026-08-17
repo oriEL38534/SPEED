@@ -153,12 +153,12 @@ local function findBall()
 	return nil
 end
 
--- יצירת הילות
-local function applyHighlights()
+-- יצירת הילות למצב כהה (כדור אש + שחקנים בתכלת)
+local function applyDarkHighlights()
 	removeHighlights()
 	
 	highlightsFolder = Instance.new("Folder")
-	highlightsFolder.Name = "DarkGlowHighlights"
+	highlightsFolder.Name = "GlowHighlights"
 	highlightsFolder.Parent = Workspace
 
 	local targetBall = findBall()
@@ -191,6 +191,28 @@ local function applyHighlights()
 			plrHighlight.OutlineTransparency = 0
 			plrHighlight.Parent = highlightsFolder
 			plrHighlight.Adornee = plr.Character
+		end
+	end
+end
+
+-- יצירת הילת אורה שחורה לכל השחקנים (מצב בהיר)
+local function applyBlackAura()
+	removeHighlights()
+	
+	highlightsFolder = Instance.new("Folder")
+	highlightsFolder.Name = "BlackAuraHighlights"
+	highlightsFolder.Parent = Workspace
+
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character then
+			local blackHighlight = Instance.new("Highlight")
+			blackHighlight.Name = plr.Name .. "_BlackAura"
+			blackHighlight.FillColor = Color3.fromRGB(0, 0, 0) -- מילוי שחור
+			blackHighlight.FillTransparency = 0.2 -- כהה ומודגש
+			blackHighlight.OutlineColor = Color3.fromRGB(20, 20, 20) -- הילה חיצונית שחורה
+			blackHighlight.OutlineTransparency = 0
+			blackHighlight.Parent = highlightsFolder
+			blackHighlight.Adornee = plr.Character
 		end
 	end
 end
@@ -252,17 +274,18 @@ createButton("🌒 כהה (עם כדור זרחני)", 215, function()
 	Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 90)
 	Lighting.Ambient = Color3.fromRGB(60, 60, 80)
 	
-	applyHighlights()
+	applyDarkHighlights()
 end)
 
-createButton("☀️ גרפיקה בהירה (Bright)", 260, function()
-	removeHighlights()
+createButton("☀️ בהיר (אורה שחורה לשחקנים)", 260, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
 	Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
 	Lighting.Ambient = Color3.fromRGB(255, 255, 255)
 	Lighting.FogEnd = 100000
+	
+	applyBlackAura()
 end)
 
 createButton("🔄 החזר גרפיקה לרגיל", 305, function()
