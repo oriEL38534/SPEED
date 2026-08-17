@@ -123,38 +123,40 @@ createButton("מהירות 100", 90, function() setSpeed(100) end)
 createButton("מהירות 200", 130, function() setSpeed(200) end)
 createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 
--- מנגנון ספאם מבוקר למניעת זיהוי BAC Anti-Cheat
+-- מנגנון ספאם: לחיצה על מקש R מריצה ספאם על מקש E
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
-	if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and spamEnabled then
-		isSpamming = true
-		task.spawn(function()
-			while isSpamming and spamEnabled do
-				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait(0.03)
-				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-				task.wait(0.05)
-			end
-		end)
+	if input.KeyCode == Enum.KeyCode.R and spamEnabled then
+		if not isSpamming then
+			isSpamming = true
+			task.spawn(function()
+				while isSpamming and spamEnabled do
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+					task.wait(0.03)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+					task.wait(0.05)
+				end
+			end)
+		end
 	end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+	if input.KeyCode == Enum.KeyCode.R then
 		isSpamming = false
 	end
 end)
 
--- כפתורי ספאם
-local spamBtn = createButton("⚡ הפעל ספאם E", 215, function(btn)
+-- כפתורי הפעלה וכיבוי
+local spamBtn = createButton("⚡ הפעל ספאם (מזניק R)", 215, function(btn)
 	spamEnabled = true
-	btn.Text = "✅ ספאם E פעיל"
+	btn.Text = "✅ ספאם R->E פעיל"
 	btn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
 end)
 
-createButton("🔴 כבה ספאם E", 255, function()
+createButton("🔴 כבה ספאם", 255, function()
 	spamEnabled = false
 	isSpamming = false
-	spamBtn.Text = "⚡ הפעל ספאם E"
+	spamBtn.Text = "⚡ הפעל ספאם (מזניק R)"
 	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end)
