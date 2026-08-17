@@ -1,42 +1,21 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer
+
+-- שמירת הגדרות ברירת המחדל של תאורת המשחק
+local defaultLighting = {
+	ClockTime = Lighting.ClockTime,
+	Brightness = Lighting.Brightness,
+	GlobalShadows = Lighting.GlobalShadows,
+	OutdoorAmbient = Lighting.OutdoorAmbient,
+	Ambient = Lighting.Ambient,
+	FogEnd = Lighting.FogEnd
+}
 
 -- משתנים לניהול מצב
 local infJumpActive = false
 local infJumpConnection = nil
-local currentThemeIndex = 1
-
--- הגדרת ערכות הנושא (Themes)
-local themes = {
-	{
-		Name = "עיצוב: כהה (Dark)",
-		FrameBg = Color3.fromRGB(18, 18, 18),
-		FrameBorder = Color3.fromRGB(45, 45, 45),
-		TitleColor = Color3.fromRGB(240, 240, 240),
-		BtnBg = Color3.fromRGB(32, 32, 32),
-		BtnText = Color3.fromRGB(230, 230, 230),
-		ActiveBtnBg = Color3.fromRGB(35, 90, 45)
-	},
-	{
-		Name = "עיצוב: בהיר (Light)",
-		FrameBg = Color3.fromRGB(240, 240, 240),
-		FrameBorder = Color3.fromRGB(190, 190, 190),
-		TitleColor = Color3.fromRGB(20, 20, 20),
-		BtnBg = Color3.fromRGB(215, 215, 215),
-		BtnText = Color3.fromRGB(10, 10, 10),
-		ActiveBtnBg = Color3.fromRGB(110, 190, 120)
-	},
-	{
-		Name = "עיצוב: ברירת מחדל",
-		FrameBg = Color3.fromRGB(30, 30, 30),
-		FrameBorder = Color3.fromRGB(60, 60, 60),
-		TitleColor = Color3.fromRGB(255, 255, 255),
-		BtnBg = Color3.fromRGB(48, 48, 48),
-		BtnText = Color3.fromRGB(255, 255, 255),
-		ActiveBtnBg = Color3.fromRGB(40, 120, 50)
-	}
-}
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -52,8 +31,11 @@ screenGui.Parent = pGui
 
 -- יצירת המסגרת הראשית
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 360)
-frame.Position = UDim2.new(0.05, 0, 0.25, 0)
+frame.Size = UDim2.new(0, 220, 0, 420)
+frame.Position = UDim2.new(0.05, 0, 0.2, 0)
+frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+frame.BorderSizePixel = 1
+frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
@@ -67,6 +49,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
 title.Text = "תפריט שליטה"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 16
 title.Font = Enum.Font.SourceSansBold
@@ -78,6 +61,7 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 40)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
 closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.SourceSansBold
@@ -88,6 +72,10 @@ local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 85, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
 toggleBtn.Text = "⚡ תפריט"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleBtn.BorderSizePixel = 1
+toggleBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
 toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
@@ -114,16 +102,16 @@ local function setSpeed(newSpeed)
 	end
 end
 
--- מערך לרשימת כפתורים לעדכון עיצוב דינמי
-local allButtons = {}
-
+-- פונקציית עזר ליצירת כפתורים
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.86, 0, 0, 32)
 	btn.Position = UDim2.new(0.07, 0, 0, positionY)
 	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(240, 240, 240)
+	btn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 	btn.BorderSizePixel = 0
-	btn.TextSize = 15
+	btn.TextSize = 14
 	btn.Font = Enum.Font.SourceSansSemibold
 	btn.Parent = frame
 
@@ -134,8 +122,6 @@ local function createButton(text, positionY, onClick)
 	btn.MouseButton1Click:Connect(function()
 		onClick(btn)
 	end)
-	
-	table.insert(allButtons, btn)
 	return btn
 end
 
@@ -143,52 +129,40 @@ end
 createButton("מהירות 30", 45, function() setSpeed(30) end)
 createButton("מהירות 100", 85, function() setSpeed(100) end)
 createButton("מהירות 200", 125, function() setSpeed(200) end)
-createButton("איפוס מהירות (16)", 165, function() setSpeed(16) end)
 
 -- כפתור Infinite Jump
-local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 205, function() end)
+local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
--- כפתור החלפת ערכת נושא (Theme)
-local themeBtn = createButton("🎨 עיצוב: כהה (Dark)", 250, function() end)
-
--- כפתור איפוס מלא
-local resetAllBtn = createButton("🛑 איפוס הכל", 295, function() end)
-
--- פונקציה להחלת ערכת נושא
-local function applyTheme(themeIndex)
-	local theme = themes[themeIndex]
-	
-	frame.BackgroundColor3 = theme.FrameBg
-	frame.BorderColor3 = theme.FrameBorder
-	title.TextColor3 = theme.TitleColor
-	closeBtn.TextColor3 = theme.TitleColor
-	
-	toggleBtn.BackgroundColor3 = theme.FrameBg
-	toggleBtn.BorderColor3 = theme.FrameBorder
-	toggleBtn.TextColor3 = theme.TitleColor
-	
-	themeBtn.Text = "🎨 " .. theme.Name
-
-	for _, btn in ipairs(allButtons) do
-		if btn == infJumpBtn and infJumpActive then
-			btn.BackgroundColor3 = theme.ActiveBtnBg
-		elseif btn == resetAllBtn then
-			btn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
-			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		else
-			btn.BackgroundColor3 = theme.BtnBg
-			btn.TextColor3 = theme.BtnText
-		end
-	end
-end
-
-themeBtn.MouseButton1Click:Connect(function()
-	currentThemeIndex = currentThemeIndex + 1
-	if currentThemeIndex > #themes then
-		currentThemeIndex = 1
-	end
-	applyTheme(currentThemeIndex)
+-- שליטה בגרפיקת המשחק
+createButton("🌑 גרפיקה כהה (Dark)", 215, function()
+	Lighting.ClockTime = 0
+	Lighting.Brightness = 0.5
+	Lighting.GlobalShadows = true
+	Lighting.OutdoorAmbient = Color3.fromRGB(20, 20, 35)
+	Lighting.Ambient = Color3.fromRGB(15, 15, 20)
 end)
+
+createButton("☀️ גרפיקה בהירה (Bright)", 260, function()
+	Lighting.ClockTime = 14
+	Lighting.Brightness = 3
+	Lighting.GlobalShadows = false
+	Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+	Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+	Lighting.FogEnd = 100000
+end)
+
+createButton("🔄 החזר גרפיקה לרגיל", 305, function()
+	Lighting.ClockTime = defaultLighting.ClockTime
+	Lighting.Brightness = defaultLighting.Brightness
+	Lighting.GlobalShadows = defaultLighting.GlobalShadows
+	Lighting.OutdoorAmbient = defaultLighting.OutdoorAmbient
+	Lighting.Ambient = defaultLighting.Ambient
+	Lighting.FogEnd = defaultLighting.FogEnd
+end)
+
+-- כפתור איפוס הכל
+local resetAllBtn = createButton("🛑 איפוס הכל (מהירות+קפיצה)", 355, function() end)
+resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
 -- לוגיקת Infinite Jump
 local function disableInfJump()
@@ -198,14 +172,14 @@ local function disableInfJump()
 		infJumpConnection = nil
 	end
 	infJumpBtn.Text = "🦘 Infinite Jump: כבוי"
-	applyTheme(currentThemeIndex)
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
 local function enableInfJump()
 	disableInfJump()
 	infJumpActive = true
 	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
-	applyTheme(currentThemeIndex)
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
 	
 	infJumpConnection = UserInputService.JumpRequest:Connect(function()
 		if infJumpActive then
@@ -229,6 +203,3 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
 	setSpeed(16)
 end)
-
--- החלת ערכת נושא התחלתית
-applyTheme(1)
