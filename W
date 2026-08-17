@@ -4,8 +4,6 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 -- משתנים לניהול מצבים
-local infiniteJumpEnabled = false
-local jumpConnection = nil
 local spamEnabled = false
 local isSpamming = false
 
@@ -21,27 +19,32 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת (Frame)
+-- יצירת המסגרת הראשית (עיצוב כהה ויוקרתי)
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 390)
+frame.Size = UDim2.new(0, 220, 0, 320)
 frame.Position = UDim2.new(0.05, 0, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 1
-frame.BorderColor3 = Color3.fromRGB(220, 220, 220)
+frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 
--- כותרת
+-- עיגול פינות למסגרת
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 8)
+frameCorner.Parent = frame
+
+-- כותרת "הסקריפט שלי"
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
-title.Position = UDim2.new(0, 0, 0, 0)
-title.Text = "תפריט מהירות"
-title.TextColor3 = Color3.fromRGB(0, 0, 0)
-title.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
-title.BorderSizePixel = 0
+title.Position = UDim2.new(0, 12, 0, 0)
+title.Text = "הסקריפט שלי"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1
 title.TextSize = 18
 title.Font = Enum.Font.SourceSansBold
+title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
 -- כפתור סגירה (X)
@@ -49,27 +52,30 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 40)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
 closeBtn.Text = "✕"
-closeBtn.TextColor3 = Color3.fromRGB(120, 120, 120)
-closeBtn.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
-closeBtn.BorderSizePixel = 0
+closeBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+closeBtn.BackgroundTransparency = 1
 closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = frame
 
 -- כפתור צף להצגה/הסתרה (Toggle Button)
 local toggleBtn = Instance.new("TextButton")
-toggleBtn.Size = UDim2.new(0, 80, 0, 35)
+toggleBtn.Size = UDim2.new(0, 85, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
 toggleBtn.Text = "⚡ תפריט"
-toggleBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleBtn.BorderSizePixel = 1
-toggleBtn.BorderColor3 = Color3.fromRGB(210, 210, 210)
+toggleBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
 toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
 toggleBtn.Draggable = true
 toggleBtn.Parent = screenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 6)
+toggleCorner.Parent = toggleBtn
 
 -- לוגיקת פתיחה/סגירה
 local function toggleMenu()
@@ -79,29 +85,31 @@ end
 closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
--- פונקציה לעדכון המהירות
+-- פונקציה לעדכון מהירות
 local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		humanoid.WalkSpeed = newSpeed
-		print("המהירות שונתה ל: " .. newSpeed)
 	end
 end
 
--- פונקציית עזר ליצירת כפתורים
+-- פונקציית עזר ליצירת כפתורים כהים
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0.8, 0, 0, 30)
-	btn.Position = UDim2.new(0.1, 0, 0, positionY)
+	btn.Size = UDim2.new(0.86, 0, 0, 32)
+	btn.Position = UDim2.new(0.07, 0, 0, positionY)
 	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(0, 0, 0)
-	btn.BackgroundColor3 = Color3.fromRGB(250, 250, 250)
-	btn.BorderSizePixel = 1
-	btn.BorderColor3 = Color3.fromRGB(220, 220, 220)
+	btn.TextColor3 = Color3.fromRGB(240, 240, 240)
+	btn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+	btn.BorderSizePixel = 0
 	btn.TextSize = 15
-	btn.Font = Enum.Font.SourceSans
+	btn.Font = Enum.Font.SourceSansSemibold
 	btn.Parent = frame
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 5)
+	btnCorner.Parent = btn
 
 	btn.MouseButton1Click:Connect(function()
 		onClick(btn)
@@ -115,37 +123,7 @@ createButton("מהירות 100", 90, function() setSpeed(100) end)
 createButton("מהירות 200", 130, function() setSpeed(200) end)
 createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 
--- כפתורי Infinite Jump
-local infJumpBtn = createButton("♾️ הפעל Inf Jump", 215, function(btn)
-	if not infiniteJumpEnabled then
-		infiniteJumpEnabled = true
-		btn.Text = "✅ Inf Jump פעיל"
-		btn.BackgroundColor3 = Color3.fromRGB(225, 245, 225)
-		
-		-- חיבור האירוע בלבד כשהוא מופעל
-		jumpConnection = UserInputService.JumpRequest:Connect(function()
-			local char = player.Character
-			if char then
-				local hum = char:FindFirstChildOfClass("Humanoid")
-				if hum then
-					hum:ChangeState(Enum.HumanoidStateType.Jumping)
-				end
-			end
-		end)
-	end
-end)
-
-createButton("🔴 כבה Inf Jump", 255, function()
-	infiniteJumpEnabled = false
-	if jumpConnection then
-		jumpConnection:Disconnect() -- ניתוק מוחלט של הקפיצה האינסופית
-		jumpConnection = nil
-	end
-	infJumpBtn.Text = "♾️ הפעל Inf Jump"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(250, 250, 250)
-end)
-
--- מנגנון ספאם מקש E בלחיצה
+-- מנגנון ספאם מקש E מהיר בלחיצה ממושכת
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and spamEnabled then
@@ -168,15 +146,15 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 -- כפתורי ספאם
-local spamBtn = createButton("⚡ הפעל ספאם E", 295, function(btn)
+local spamBtn = createButton("⚡ הפעל ספאם E", 215, function(btn)
 	spamEnabled = true
 	btn.Text = "✅ ספאם E פעיל"
-	btn.BackgroundColor3 = Color3.fromRGB(225, 245, 225)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
 end)
 
-createButton("🔴 כבה ספאם E", 335, function()
+createButton("🔴 כבה ספאם E", 255, function()
 	spamEnabled = false
 	isSpamming = false
 	spamBtn.Text = "⚡ הפעל ספאם E"
-	spamBtn.BackgroundColor3 = Color3.fromRGB(250, 250, 250)
+	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end)
