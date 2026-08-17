@@ -417,7 +417,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM
+-- מנגנון E-SPAM (מתוקן עם עצירה מיידית)
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -447,7 +447,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY (מתוקן)
+-- 🛡️ מנגנון AUTO PARRY (מתוקן לגמרי עם עדכון כפתור ותיקון עצירה)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -698,7 +698,7 @@ local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 9, function
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry (מעודכן עם עצירה מוחלטת)
+-- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry
 ----------------------------------------------------
 local peakSpeed = 0
 local lastParryTick = 0
@@ -735,7 +735,6 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
 		
-		-- בדיקה קפדנית האם ה-AutoParry אכן פעיל לפני ביצוע החישוב
 		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
 			local rootPart = char.HumanoidRootPart
 			local distance = (ball.Position - rootPart.Position).Magnitude
