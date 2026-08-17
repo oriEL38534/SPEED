@@ -14,7 +14,7 @@ local createdLight = nil
 local pGui = player:WaitForChild("PlayerGui")
 
 ----------------------------------------------------
--- מסך פתיחה מפואר ואפקטים (MY-SCRIPT)
+-- מסך פתיחה יוקרתי וארוך עם אפקטים (MY-SCRIPT)
 ----------------------------------------------------
 if pGui:FindFirstChild("ScriptIntroGui") then
 	pGui.ScriptIntroGui:Destroy()
@@ -25,71 +25,71 @@ introGui.Name = "ScriptIntroGui"
 introGui.ResetOnSpawn = false
 introGui.Parent = pGui
 
--- חלונית מרכזית
+-- חלונית מרכזית ראשית
 local introFrame = Instance.new("Frame")
 introFrame.Size = UDim2.new(0, 0, 0, 0)
-introFrame.Position = UDim2.new(0.5, 0, 0.4, 0)
+introFrame.Position = UDim2.new(0.5, 0, 0.45, 0)
 introFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-introFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+introFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
 introFrame.BackgroundTransparency = 1
 introFrame.BorderSizePixel = 0
-introFrame.ClipsDescendants = false
+introFrame.ClipsDescendants = true
 introFrame.Parent = introGui
 
 local introCorner = Instance.new("UICorner")
-introCorner.CornerRadius = UDim.new(0, 14)
+introCorner.CornerRadius = UDim.new(0, 16)
 introCorner.Parent = introFrame
 
--- מסגרת זוהרת
+-- מסגרת ניאון זוהרת
 local introStroke = Instance.new("UIStroke")
 introStroke.Color = Color3.fromRGB(0, 170, 255)
-introStroke.Thickness = 2
+introStroke.Thickness = 2.5
 introStroke.Transparency = 1
 introStroke.Parent = introFrame
 
--- אפקט הילה אחורית (Glow)
+-- הילה כפולה ברקע (Glow Shadow)
 local glowShadow = Instance.new("ImageLabel")
-glowShadow.Size = UDim2.new(1, 60, 1, 60)
+glowShadow.Size = UDim2.new(1, 80, 1, 80)
 glowShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
 glowShadow.AnchorPoint = Vector2.new(0.5, 0.5)
 glowShadow.BackgroundTransparency = 1
 glowShadow.Image = "rbxassetid://1316045217"
-glowShadow.ImageColor3 = Color3.fromRGB(0, 170, 255)
+glowShadow.ImageColor3 = Color3.fromRGB(0, 140, 255)
 glowShadow.ImageTransparency = 1
 glowShadow.ZIndex = 0
 glowShadow.Parent = introFrame
 
--- טקסט ראשי
+-- כותרת ראשית MY-SCRIPT
 local introLabel = Instance.new("TextLabel")
-introLabel.Size = UDim2.new(1, 0, 0.45, 0)
-introLabel.Position = UDim2.new(0, 0, 0.1, 0)
+introLabel.Size = UDim2.new(1, 0, 0.35, 0)
+introLabel.Position = UDim2.new(0, 0, 0.12, 0)
 introLabel.Text = "⚡ MY-SCRIPT ⚡"
 introLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 introLabel.TextTransparency = 1
 introLabel.BackgroundTransparency = 1
-introLabel.TextSize = 24
+introLabel.TextSize = 26
 introLabel.Font = Enum.Font.GothamBold
 introLabel.ZIndex = 2
 introLabel.Parent = introFrame
 
--- טקסט משנה
+-- טקסט סטטוס
 local subLabel = Instance.new("TextLabel")
-subLabel.Size = UDim2.new(1, 0, 0.25, 0)
-subLabel.Position = UDim2.new(0, 0, 0.5, 0)
-subLabel.Text = "Loading System..."
+subLabel.Size = UDim2.new(1, 0, 0.2, 0)
+subLabel.Position = UDim2.new(0, 0, 0.48, 0)
+subLabel.Text = "INITIALIZING SYSTEM..."
 subLabel.TextColor3 = Color3.fromRGB(0, 190, 255)
 subLabel.TextTransparency = 1
 subLabel.BackgroundTransparency = 1
-subLabel.TextSize = 13
+subLabel.TextSize = 12
 subLabel.Font = Enum.Font.GothamMedium
 subLabel.ZIndex = 2
 subLabel.Parent = introFrame
 
--- פס טעינה (Progress Bar)
+-- פס טעינה חיגרתי
 local barBackground = Instance.new("Frame")
-barBackground.Size = UDim2.new(0.8, 0, 0, 4)
-barBackground.Position = UDim2.new(0.1, 0, 0.8, 0)
-barBackground.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+barBackground.Size = UDim2.new(0.8, 0, 0, 6)
+barBackground.Position = UDim2.new(0.1, 0, 0.75, 0)
+barBackground.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
 barBackground.BackgroundTransparency = 1
 barBackground.BorderSizePixel = 0
 barBackground.ZIndex = 2
@@ -101,7 +101,7 @@ barCorner.Parent = barBackground
 
 local barFill = Instance.new("Frame")
 barFill.Size = UDim2.new(0, 0, 1, 0)
-barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+barFill.BackgroundColor3 = Color3.fromRGB(0, 180, 255)
 barFill.BackgroundTransparency = 1
 barFill.BorderSizePixel = 0
 barFill.ZIndex = 3
@@ -111,8 +111,41 @@ local fillCorner = Instance.new("UICorner")
 fillCorner.CornerRadius = UDim.new(1, 0)
 fillCorner.Parent = barFill
 
+-- אפקט חלקיקים צפים ברקע (Particles)
+local particlesFolder = Instance.new("Folder")
+particlesFolder.Name = "Particles"
+particlesFolder.Parent = introFrame
+
+for i = 1, 12 do
+	local p = Instance.new("Frame")
+	p.Size = UDim2.new(0, math.random(3, 6), 0, math.random(3, 6))
+	p.Position = UDim2.new(math.random(5, 95) / 100, 0, math.random(10, 90) / 100, 0)
+	p.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+	p.BackgroundTransparency = 1
+	p.BorderSizePixel = 0
+	p.ZIndex = 1
+	p.Parent = particlesFolder
+	
+	local pCorner = Instance.new("UICorner")
+	pCorner.CornerRadius = UDim.new(1, 0)
+	pCorner.Parent = p
+	
+	-- הנפשת ציפה אינדיבידואלית
+	task.spawn(function()
+		while introGui.Parent do
+			local targetY = p.Position.Y.Scale + (math.random(-20, -5) / 100)
+			local tween = TweenService:Create(p, TweenInfo.new(math.random(20, 40) / 10, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+				Position = UDim2.new(p.Position.X.Scale, 0, targetY, 0),
+				BackgroundTransparency = math.random(2, 6) / 10
+			})
+			tween:Play()
+			tween.Completed:Wait()
+		end
+	end)
+end
+
 ----------------------------------------------------
--- יצירת הממשק הראשי (מוסתר בהתחלה)
+-- יצירת הממשק הראשי (מוסתר לחלוטין בהתחלה)
 ----------------------------------------------------
 if pGui:FindFirstChild("SpeedMenuGui") then
 	pGui.SpeedMenuGui:Destroy()
@@ -131,7 +164,8 @@ frame.BorderSizePixel = 1
 frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 frame.Active = true
 frame.Draggable = true
-frame.Visible = false -- נסתר עד לסיום ההנפשה
+frame.Visible = false -- מוסתר קשיח
+frame.BackgroundTransparency = 1
 frame.Parent = screenGui
 
 local frameCorner = Instance.new("UICorner")
@@ -171,7 +205,8 @@ toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
 toggleBtn.Draggable = true
-toggleBtn.Visible = false -- נסתר עד לסיום ההנפשה
+toggleBtn.Visible = false -- מוסתר קשיח
+toggleBtn.BackgroundTransparency = 1
 toggleBtn.Parent = screenGui
 
 local toggleCorner = Instance.new("UICorner")
@@ -186,30 +221,41 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- הרצת רצף ההנפשות (4 שניות)
+-- הרצת רצף ההנפשות הארוך והמפואר (כ-5 שניות)
 ----------------------------------------------------
-local openInfo = TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-local fadeInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local loadInfo = TweenInfo.new(3.0, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
-local closeInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+local openInfo = TweenInfo.new(1.0, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local fadeInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local closeInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
 
 task.spawn(function()
-	-- 1. כניסת חלונית הפתיחה עם אלמנט קפיצה
-	TweenService:Create(introFrame, openInfo, {Size = UDim2.new(0, 280, 0, 95), BackgroundTransparency = 0.1}):Play()
+	-- 1. כניסת חלונית הפתיחה בנפח מלא
+	TweenService:Create(introFrame, openInfo, {Size = UDim2.new(0, 320, 0, 120), BackgroundTransparency = 0.05}):Play()
 	TweenService:Create(introStroke, fadeInfo, {Transparency = 0}):Play()
-	TweenService:Create(glowShadow, fadeInfo, {ImageTransparency = 0.5}):Play()
+	TweenService:Create(glowShadow, fadeInfo, {ImageTransparency = 0.4}):Play()
 	TweenService:Create(introLabel, fadeInfo, {TextTransparency = 0}):Play()
 	TweenService:Create(subLabel, fadeInfo, {TextTransparency = 0}):Play()
-	TweenService:Create(barBackground, fadeInfo, {BackgroundTransparency = 0.6}):Play()
+	TweenService:Create(barBackground, fadeInfo, {BackgroundTransparency = 0.5}):Play()
 	TweenService:Create(barFill, fadeInfo, {BackgroundTransparency = 0}):Play()
 
-	-- 2. הנפשת פס טעינה (למשך 3 שניות)
-	TweenService:Create(barFill, loadInfo, {Size = UDim2.new(1, 0, 1, 0)}):Play()
-	task.wait(2.2)
-	subLabel.Text = "Ready!"
-	task.wait(0.8)
+	-- 2. תהליך טעינה דינמי (4 שלבים רצופים)
+	local steps = {
+		{time = 1.0, progress = 0.35, text = "LOADING MODULES... 35%"},
+		{time = 1.2, progress = 0.70, text = "APPLYING GRAPHICS... 70%"},
+		{time = 1.1, progress = 0.95, text = "FINALIZING SETUP... 95%"},
+		{time = 0.7, progress = 1.00, text = "WELCOME, " .. player.Name:upper() .. "!"}
+	}
 
-	-- 3. יציאה והיעלמות
+	for _, step in ipairs(steps) do
+		subLabel.Text = step.text
+		TweenService:Create(barFill, TweenInfo.new(step.time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = UDim2.new(step.progress, 0, 1, 0)
+		}):Play()
+		task.wait(step.time)
+	end
+
+	task.wait(0.5)
+
+	-- 3. יציאה קטיפתית של הפתיח
 	TweenService:Create(introFrame, closeInfo, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}):Play()
 	TweenService:Create(introStroke, fadeInfo, {Transparency = 1}):Play()
 	TweenService:Create(glowShadow, fadeInfo, {ImageTransparency = 1}):Play()
@@ -218,12 +264,15 @@ task.spawn(function()
 	TweenService:Create(barBackground, fadeInfo, {BackgroundTransparency = 1}):Play()
 	TweenService:Create(barFill, fadeInfo, {BackgroundTransparency = 1}):Play()
 
-	task.wait(0.5)
+	task.wait(0.6)
 	introGui:Destroy()
 
-	-- 4. הצגת תפריט המשחק
+	-- 4. הצגת תפריט המשחק רק עכשיו! עם אפקט הופעה חלק (Fade In)
 	frame.Visible = true
 	toggleBtn.Visible = true
+	
+	TweenService:Create(frame, fadeInfo, {BackgroundTransparency = 0}):Play()
+	TweenService:Create(toggleBtn, fadeInfo, {BackgroundTransparency = 0}):Play()
 end)
 
 ----------------------------------------------------
