@@ -13,7 +13,6 @@ local pGui = player:WaitForChild("PlayerGui")
 if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
-if pGui:FindFirstChild("FFlagGuideGui") then pGui.FFlagGuideGui:Destroy() end
 
 ----------------------------------------------------
 -- 1. שמירת הגדרות התאורה המקוריות של המשחק
@@ -28,7 +27,6 @@ local headlessActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
-local fflagBoostActive = false
 
 -- ערכים נוכחיים להגדרות
 local currentSavedSpeed = 30
@@ -41,7 +39,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 560) -- הגדלנו מעט את המסגרת כדי להכיל את הכפתור החדש
+frame.Size = UDim2.new(0, 480, 0, 520)
 frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
@@ -62,7 +60,7 @@ frameStroke.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -50, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
-title.Text = "⚡ SPEED & BLADE HUB + FFLAGS"
+title.Text = "⚡ SPEED & BLADE HUB"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 17
@@ -114,8 +112,8 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.90, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.06, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.08, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
@@ -125,8 +123,8 @@ leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.90, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.06, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.08, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
@@ -415,7 +413,7 @@ local function applyKorblox()
 end
 
 local function applyHeadless()
-	pcall(function`())
+	pcall(function()
 		local char = player.Character
 		if not char then return end
 		local head = char:FindFirstChild("Head")
@@ -505,30 +503,7 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 	end
 end)
 
--- כפתור חדש המשלב את הגדרות ה-FFlags שלך (מצב ביצועים ו-FPS פתוח)
-local fflagBtn = createButton(rightCol, "🚀 FFlags Boost: מידע והפעלה", 5, function()
-	fflagBoostActive = not fflagBoostActive
-	if fflagBoostActive then
-		fflagBtn.Text = "✅ FFlags Boost: פעיל"
-		fflagBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		
-		-- החלת אופטימיזציות פנימיות שתואמות ל-FFlags שלך
-		Lighting.GlobalShadows = false
-		Lighting.Brightness = 2
-		setFOV(95)
-		
-		-- הודעת הסבר למשתמש על קובץ ה-FFlags
-		print("--- FFLAG BOOST ACTIVATED ---")
-		print("FPS Limit Unlocked, Telemetry Blocked & Graphics Optimized!")
-	else
-		fflagBtn.Text = "🚀 FFlags Boost: כבוי"
-		fflagBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-		restoreDefaultLighting()
-		setFOV(70)
-	end
-end)
-
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 6, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 local peakSpeed = 0
@@ -538,51 +513,43 @@ resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
-local function getMovingBall()
-	local highestSpeed = 0
-	local targetPart = nil
-
+local function getBall()
+	-- חיפוש גלובלי מתקדם לכדור במשחק (עובד בכל סוגי המפות)
 	for _, obj in pairs(Workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and obj.Transparency < 1 then
-			local isCharacterPart = false
-			for _, p in pairs(Players:GetPlayers()) do
-				if p.Character and obj:IsDescendantOf(p.Character) then
-					isCharacterPart = true
-					break
-				end
-			end
-			
-			if not isCharacterPart then
-				local speed = obj.AssemblyLinearVelocity.Magnitude
-				if speed > highestSpeed then
-					highestSpeed = speed
-					targetPart = obj
-				end
+		if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name == "Moon" or obj.Name:lower():find("ball")) then
+			if obj.Transparency < 1 then
+				return obj
 			end
 		end
 	end
-
-	return targetPart, math.floor(highestSpeed)
+	return nil
 end
 
 RunService.RenderStepped:Connect(function(dt)
-	if ballStatsActive and statsFrame.Visible then
-		local ballPart, currentSpeed = getMovingBall()
+	local ball = getBall()
+	if ball and ball:IsA("BasePart") then
+		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
 		
-		if ballPart then
+		-- אם המהירות הפיזית היא 0 אבל יש תנועה, ננסה לבדוק מהירויות חלופיות
+		if currentSpeed == 0 then
 			pcall(function()
-				if ballPart:GetAttribute("Speed") and ballPart:GetAttribute("Speed") > currentSpeed then
-					currentSpeed = math.floor(ballPart:GetAttribute("Speed"))
+				if ball:GetAttribute("Speed") then
+					currentSpeed = math.floor(ball:GetAttribute("Speed"))
 				end
 			end)
 		end
-
-		if currentSpeed > peakSpeed then
-			peakSpeed = currentSpeed
-			peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
-		end
 		
-		currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
+		if ballStatsActive and statsFrame.Visible then
+			if currentSpeed > peakSpeed then
+				peakSpeed = currentSpeed
+				peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
+			end
+			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
+		end
+	else
+		if ballStatsActive and statsFrame.Visible then
+			currentSpeedLabel.Text = "⚡ Speed: 0"
+		end
 	end
 end)
 
@@ -599,10 +566,6 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	lightLightingActive = false
 	lightBtn.Text = "☀️ מצב בהיר: כבוי"
 	lightBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-
-	fflagBoostActive = false
-	fflagBtn.Text = "🚀 FFlags Boost: מידע והפעלה"
-	fflagBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 
 	restoreDefaultLighting()
 
@@ -671,20 +634,20 @@ task.spawn(function()
 	local introLabel = Instance.new("TextLabel")
 	introLabel.Size = UDim2.new(1, 0, 0.35, 0)
 	introLabel.Position = UDim2.new(0, 0, 0.1, 0)
-	introLabel.Text = "⚡ SPEED & BLADE HUB ⚡"
+	introLabel.Text = "⚡ MY-SCRIPT ⚡"
 	introLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	introLabel.BackgroundTransparency = 1
-	introLabel.TextSize = 22
+	introLabel.TextSize = 26
 	introLabel.Font = Enum.Font.GothamBold
 	introLabel.Parent = introFrame
 
 	local subLabel = Instance.new("TextLabel")
 	subLabel.Size = UDim2.new(1, 0, 0.2, 0)
 	subLabel.Position = UDim2.new(0, 0, 0.45, 0)
-	subLabel.Text = "INITIALIZING FFLAGS & MODULES..."
+	subLabel.Text = "INITIALIZING..."
 	subLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 	subLabel.BackgroundTransparency = 1
-	subLabel.TextSize = 12
+	subLabel.TextSize = 13
 	subLabel.Font = Enum.Font.GothamMedium
 	subLabel.Parent = introFrame
 
@@ -702,11 +665,11 @@ task.spawn(function()
 	barFill.Parent = barBackground
 
 	task.wait(0.4)
-	subLabel.Text = "APPLYING FPS OPTIMIZATION [35%]"
+	subLabel.Text = "LOADING UI MODULES [35%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "BLOCKING TELEMETRY [75%]"
+	subLabel.Text = "LOADING MODULES [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
