@@ -13,7 +13,6 @@ local pGui = player:WaitForChild("PlayerGui")
 if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
-if pGui:FindFirstChild("SpamGui") then pGui.SpamGui:Destroy() end
 
 ----------------------------------------------------
 -- 1. שמירת הגדרות התאורה המקוריות של המשחק
@@ -28,10 +27,8 @@ local headlessActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
-local autoClickerActive = false
 local spinActive = false
 local spinSpeed = 10
-local spamActive = false
 
 -- ערכים נוכחיים להגדרות
 local currentSavedSpeed = 30
@@ -44,7 +41,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 620)
+frame.Size = UDim2.new(0, 480, 0, 560)
 frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
@@ -343,49 +340,7 @@ btnCorner.CornerRadius = UDim.new(0, 4)
 btnCorner.Parent = resetPeakBtn
 
 ----------------------------------------------------
--- 6. חלונית SPAM קטנה על המסך
-----------------------------------------------------
-local spamGui = Instance.new("ScreenGui")
-spamGui.Name = "SpamGui"
-spamGui.ResetOnSpawn = false
-spamGui.Parent = pGui
-
-local spamFloatingFrame = Instance.new("Frame")
-spamFloatingFrame.Size = UDim2.new(0, 130, 0, 45)
-spamFloatingFrame.Position = UDim2.new(0.5, -65, 0.75, 0)
-spamFloatingFrame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
-spamFloatingFrame.BorderSizePixel = 0
-spamFloatingFrame.Active = true
-spamFloatingFrame.Draggable = true
-spamFloatingFrame.Visible = false
-spamFloatingFrame.Parent = spamGui
-
-local spamFrameCorner = Instance.new("UICorner")
-spamFrameCorner.CornerRadius = UDim.new(0, 8)
-spamFrameCorner.Parent = spamFloatingFrame
-
-local spamFrameStroke = Instance.new("UIStroke")
-spamFrameStroke.Color = Color3.fromRGB(140, 50, 200)
-spamFrameStroke.Thickness = 1.5
-spamFrameStroke.Parent = spamFloatingFrame
-
-local spamBtnTarget = Instance.new("TextButton")
-spamBtnTarget.Size = UDim2.new(1, -10, 1, -10)
-spamBtnTarget.Position = UDim2.new(0, 5, 0, 5)
-spamBtnTarget.Text = "דפשצ (SPAM)"
-spamBtnTarget.TextColor3 = Color3.fromRGB(255, 255, 255)
-spamBtnTarget.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-spamBtnTarget.BorderSizePixel = 0
-spamBtnTarget.TextSize = 13
-spamBtnTarget.Font = Enum.Font.GothamBold
-spamBtnTarget.Parent = spamFloatingFrame
-
-local spamBtnCorner = Instance.new("UICorner")
-spamBtnCorner.CornerRadius = UDim.new(0, 6)
-spamBtnCorner.Parent = spamBtnTarget
-
-----------------------------------------------------
--- 7. הרכבת האלמנטים בעמודות
+-- 6. הרכבת האלמנטים בעמודות
 ----------------------------------------------------
 createSlider(leftCol, "⚡ מהירות", 16, 200, 30, 1, function(val) setSpeed(val) end)
 createSlider(leftCol, "🦘 גובה קפיצה", 50, 200, 50, 2, function(val) setJumpPower(val) end)
@@ -442,75 +397,6 @@ end
 
 ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
-end)
-
--- אוטו קליקר
-local autoClickerBtn = createButton(leftCol, "🤖 Auto Clicker: כבוי", 6, function() end)
-
--- פקודת UI ל-SPAM מתחת לאוטו קליקר
-local spamToggleBtn = createButton(leftCol, "📌 Spam UI: OFF", 7, function() end)
-
-local function setSpamUI(state)
-	spamActive = state
-	if spamActive then
-		spamToggleBtn.Text = "📌 Spam UI: ON"
-		spamToggleBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		spamFloatingFrame.Visible = true
-	else
-		spamToggleBtn.Text = "📌 Spam UI: OFF"
-		spamToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-		spamFloatingFrame.Visible = false
-	end
-end
-
-spamToggleBtn.MouseButton1Click:Connect(function()
-	setSpamUI(not spamActive)
-end)
-
-local function setAutoClicker(state)
-	autoClickerActive = state
-	if autoClickerActive then
-		autoClickerBtn.Text = "✅ Auto Clicker: פעיל"
-		autoClickerBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-	else
-		autoClickerBtn.Text = "🤖 Auto Clicker: כבוי"
-		autoClickerBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-	end
-end
-
-autoClickerBtn.MouseButton1Click:Connect(function()
-	setAutoClicker(not autoClickerActive)
-end)
-
-local isSpamming = false
-
-spamBtnTarget.MouseButton1Down:Connect(function()
-	isSpamming = true
-end)
-
-spamBtnTarget.MouseButton1Up:Connect(function()
-	isSpamming = false
-end)
-
-spamBtnTarget.MouseLeave:Connect(function()
-	isSpamming = false
-end)
-
--- מנגנון לחיצה מוגן ובטוח שמונע את שגיאה 267 על ידי מרווחי זמן בטוחים
-task.spawn(function()
-	while true do
-		if autoClickerActive or isSpamming then
-			pcall(function()
-				-- שחרור שימוש ב-VirtualUser הבעייתי והחלפתו בסימולציית שרת בטוחה או פעולת לחיצה מקומית נקייה
-				game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 0)
-				task.wait(0.03)
-				game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 0)
-			end)
-			task.wait(0.08)
-		else
-			task.wait(0.1)
-		end
-	end
 end)
 
 local function applyKorblox()
@@ -707,8 +593,6 @@ end)
 
 resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
-	setAutoClicker(false)
-	setSpamUI(false)
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
