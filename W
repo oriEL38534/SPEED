@@ -5,6 +5,7 @@ local player = Players.LocalPlayer
 
 -- משתנים לניהול מצבים
 local spamEnabled = false
+local spamThread = nil
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -126,14 +127,25 @@ createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
 local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
 
--- פונקציות להפעלה וכיבוי הספאם
+-- פונקציה לעצירת הספאם
+local function stopSpam()
+	spamEnabled = false
+	if spamThread then
+		task.cancel(spamThread) -- עצירה מוחלטת ומיידית של התהליך
+		spamThread = nil
+	end
+	spamBtn.Text = "⚡ הפעל ספאם [R]"
+	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+end
+
+-- פונקציה להפעלת הספאם
 local function startSpam()
 	if not spamEnabled then
 		spamEnabled = true
 		spamBtn.Text = "✅ ספאם E פעיל [R]"
 		spamBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
 		
-		task.spawn(function()
+		spamThread = task.spawn(function()
 			while spamEnabled do
 				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
 				task.wait(0.03)
@@ -144,17 +156,11 @@ local function startSpam()
 	end
 end
 
-local function stopSpam()
-	spamEnabled = false
-	spamBtn.Text = "⚡ הפעל ספאם [R]"
-	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-end
-
 -- חיבור הלחיצות בכפתורי הממשק
 spamBtn.MouseButton1Click:Connect(startSpam)
 stopSpamBtn.MouseButton1Click:Connect(stopSpam)
 
--- הפיכת מקש R למתג Toggle (הפעלה/כיבוי בלחיצה)
+-- הפיכת מקש R למתג Toggle מהיר וביטחוני
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == Enum.KeyCode.R then
