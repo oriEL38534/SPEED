@@ -1,6 +1,6 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 -- משתנים לניהול מצבים
@@ -21,7 +21,7 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת הראשית (ממשק כהה)
+-- יצירת המסגרת הראשית
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 220, 0, 400)
 frame.Position = UDim2.new(0.05, 0, 0.25, 0)
@@ -40,7 +40,7 @@ frameCorner.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "הסקריפט שלי"
+title.Text = "הסקריפט שלי (E Fixed)"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 16
@@ -147,21 +147,18 @@ local function startSpam()
 	currentSessionID = currentSessionID + 1
 	local myID = currentSessionID
 	
-	spamBtn.Text = "✅ ספאם פעיל [R]"
+	spamBtn.Text = "✅ ספאם E פעיל [R]"
 	spamBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
 	
 	task.spawn(function()
 		while spamActive and currentSessionID == myID do
 			pcall(function()
-				local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Packages")
-				if remotes then
-					local parryRemote = remotes:FindFirstChild("ParryButtonPress") or remotes:FindFirstChild("Parry")
-					if parryRemote and parryRemote:IsA("RemoteEvent") then
-						parryRemote:FireServer()
-					end
-				end
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+				task.wait(0.015)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 			end)
-			task.wait(0.06)
+			-- קצב מותאם למניעת זיהוי BAC Anti-Cheat
+			task.wait(0.045)
 		end
 	end)
 end
@@ -206,7 +203,7 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- פונקציה לעצירה מוחלטת של כל פעילות הסקריפט
+-- עצירה מוחלטת של כל הרכיבים
 local function killAllScriptFunctions()
 	stopSpam()
 	disableInfJump()
