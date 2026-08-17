@@ -1,25 +1,24 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- מנגנון נעילה קשיח למניעת כפילות בלולאות
+-- מנגנון נעילה קשיח
 local spamActive = false
 local currentSessionID = 0
 
--- ניקוי ממשק ישן אם קיים
+-- ניקוי ממשק ישן
 local pGui = player:WaitForChild("PlayerGui")
 if pGui:FindFirstChild("SpeedMenuGui") then
 	pGui.SpeedMenuGui:Destroy()
 end
 
--- יצירת הממשק הוויזואלי (ScreenGui)
+-- יצירת המסך והממשק
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת הראשית (עיצוב כהה)
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 220, 0, 320)
 frame.Position = UDim2.new(0.05, 0, 0.3, 0)
@@ -34,11 +33,10 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
 
--- כותרת
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "הסקריפט שלי (Safe)"
+title.Text = "הסקריפט שלי (Bypass)"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 16
@@ -46,7 +44,6 @@ title.Font = Enum.Font.SourceSansBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
--- כפתור סגירה (X)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 40)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -57,7 +54,6 @@ closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = frame
 
--- כפתור צף להצגה/הסתרה
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 85, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
@@ -83,7 +79,6 @@ end
 closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
--- פונקציה לעדכון מהירות
 local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -92,7 +87,6 @@ local function setSpeed(newSpeed)
 	end
 end
 
--- פונקציית עזר ליצירת כפתורים
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.86, 0, 0, 32)
@@ -115,17 +109,14 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
--- כפתורי מהירות
 createButton("מהירות 30", 50, function() setSpeed(30) end)
 createButton("מהירות 100", 90, function() setSpeed(100) end)
 createButton("מהירות 200", 130, function() setSpeed(200) end)
 createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 
--- כפתורי הספאם
 local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
 local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
 
--- עצירה מוחלטת
 local function stopAllSpam()
 	spamActive = false
 	currentSessionID = currentSessionID + 1
@@ -133,7 +124,7 @@ local function stopAllSpam()
 	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
--- הפעלת ספאם עם השהיה אנושית דינמית
+-- סליקת Parry בטוחה ישירות מול הרשת של המשחק
 local function startSpam()
 	stopAllSpam()
 	
@@ -141,17 +132,22 @@ local function startSpam()
 	currentSessionID = currentSessionID + 1
 	local myID = currentSessionID
 	
-	spamBtn.Text = "✅ ספאם E פעיל [R]"
+	spamBtn.Text = "✅ ספאם פעיל [R]"
 	spamBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
 	
 	task.spawn(function()
 		while spamActive and currentSessionID == myID do
 			pcall(function()
-				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait(math.random(35, 50) / 1000) -- השהיה דינמית בלחיצה
-				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				-- ניסיון הפעלה דרך ה-Remote של המשחק (עוקף VirtualInputManager)
+				local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Packages")
+				if remotes then
+					local parryRemote = remotes:FindFirstChild("ParryButtonPress") or remotes:FindFirstChild("Parry")
+					if parryRemote and parryRemote:IsA("RemoteEvent") then
+						parryRemote:FireServer()
+					end
+				end
 			end)
-			task.wait(math.random(110, 140) / 1000) -- קצב אנושי למניעת עקיפת Anti-Cheat BAC
+			task.wait(0.06)
 		end
 	end)
 end
@@ -167,7 +163,6 @@ end
 spamBtn.MouseButton1Click:Connect(toggleSpam)
 stopSpamBtn.MouseButton1Click:Connect(stopAllSpam)
 
--- זיהוי מקש R
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == Enum.KeyCode.R then
