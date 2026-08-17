@@ -4,7 +4,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
-local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
 -- משתנים לניהול מצב
@@ -26,7 +26,7 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת הראשית (הגדלתי מעט את הגובה בשביל Auto Parry)
+-- יצירת המסגרת הראשית
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 220, 0, 460)
 frame.Position = UDim2.new(0.05, 0, 0.2, 0)
@@ -157,6 +157,17 @@ local function findBall()
 	return nil
 end
 
+-- איתור ה-RemoteEvent של Parry
+local function getParryRemote()
+	local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
+	for _, obj in ipairs(remotes:GetDescendants()) do
+		if obj:IsA("RemoteEvent") and (obj.Name:lower():find("parry") or obj.Name:lower():find("ability") or obj.Name:lower():find("hit")) then
+			return obj
+		end
+	end
+	return nil
+end
+
 -- יצירת הילות למצב כהה
 local function applyDarkHighlights()
 	removeHighlights()
@@ -281,15 +292,6 @@ end)
 -- כפתור AUTO PARRY
 local autoParryBtn = createButton("⚔️ Auto Parry: כבוי", 215, function() end)
 
--- לוגיקת AUTO PARRY בזמן אמת
-local function performParry()
-	-- שליחת מקש F / לחיצה שמבצעת Parry במשחק
-	VirtualInputManager:SendKeyPressEvent(Enum.KeyCode.F, false, game)
-	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-	task.wait(0.01)
-	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-end
-
 local function disableAutoParry()
 	autoParryActive = false
 	if autoParryConnection then
@@ -306,6 +308,8 @@ local function enableAutoParry()
 	autoParryBtn.Text = "✅ Auto Parry: פעיל"
 	autoParryBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
 
+	local parryRemote = getParryRemote()
+
 	autoParryConnection = RunService.PreRender:Connect(function()
 		if not autoParryActive then return end
 
@@ -317,20 +321,20 @@ local function enableAutoParry()
 		local ball = findBall()
 		if not ball then return end
 
-		-- חישוב מרחק ומהירות הכדור אל השחקן
 		local ballPos = ball.Position
 		local ballVel = ball.AssemblyLinearVelocity
 		local distance = (ballPos - root.Position).Magnitude
 		local speed = ballVel.Magnitude
 
-		-- סף מרחק דינמי מבוסס מהירות
-		local parryDistance = math.clamp(speed * 0.4, 15, 60)
+		-- חישוב מרחק סף על פי מהירות הכדור
+		local parryDistance = math.clamp(speed * 0.45, 18, 70)
 
 		if distance <= parryDistance then
-			-- בדיקה שהכדור אכן נע לכיוון השחקן
 			local dotProduct = (root.Position - ballPos).Unit:Dot(ballVel.Unit)
-			if dotProduct > 0.2 or distance < 18 then
-				performParry()
+			if dotProduct > 0.15 or distance < 20 then
+				if parryRemote then
+					parryRemote:FireServer(0.5, CFrame.new(), {}, {0, 0})
+				end
 			end
 		end
 	end)
