@@ -5,6 +5,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 
@@ -143,7 +144,7 @@ rightList.Parent = rightCol
 -- 3. פונקציות תנועה ומצלמה (מוגנות מניתוק)
 ----------------------------------------------------
 local function setSpeed(newSpeed)
-	currentSavedSpeed = math.clamp(newSpeed, 16, 100) -- הגבלה למניעת Kick
+	currentSavedSpeed = math.clamp(newSpeed, 16, 100)
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
@@ -152,7 +153,7 @@ local function setSpeed(newSpeed)
 end
 
 local function setJumpPower(newPower)
-	currentSavedJump = math.clamp(newPower, 50, 120) -- הגבלה למניעת Kick
+	currentSavedJump = math.clamp(newPower, 50, 120)
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
@@ -415,12 +416,37 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM (מנוטרל מסיבות אבטחה של המשחק למניעת Kick)
-local eSpamBtn = createButton(leftCol, "⚡ E-Spam: לא זמין", 6, function() end)
-eSpamBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+-- מנגנון E-SPAM
+local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
+
+local function setESpam(state)
+	eSpamActive = state
+	if eSpamActive then
+		eSpamBtn.Text = "✅ E-Spam: פעיל"
+		eSpamBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+		
+		task.spawn(function()
+			while eSpamActive do
+				pcall(function()
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+					task.wait(0.01)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				end)
+				task.wait(0.05)
+			end
+		end)
+	else
+		eSpamBtn.Text = "⚡ E-Spam: כבוי"
+		eSpamBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+eSpamBtn.MouseButton1Click:Connect(function()
+	setESpam(not eSpamActive)
+end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY מעודכן ובטוח
+-- 🛡️ מנגנון AUTO PARRY דינמי ומתקדם (מתאים לכדורים מהירים)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -637,7 +663,7 @@ local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור ומדידת מהירות
+-- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry הדינמית
 ----------------------------------------------------
 local peakSpeed = 0
 
@@ -660,14 +686,36 @@ end
 
 RunService.RenderStepped:Connect(function()
 	local ball = getBall()
+	local char = player.Character
+	
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
+		
+		-- עדכון סטטיסטיקות כדור
 		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
 				peakSpeed = currentSpeed
 				peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
 			end
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
+		end
+		
+		-- Auto Parry דינמי מותאם למהירות הכדור
+		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
+			local rootPart = char.HumanoidRootPart
+			local distance = (ball.Position - rootPart.Position).Magnitude
+			local ballVel = ball.AssemblyLinearVelocity
+			
+			-- חישוב טווח דינמי מתקדם (מתרחב ככל שהכדור מהיר יותר)
+			local dynamicThreshold = math.clamp(18 + (currentSpeed * 0.04), 18, 45)
+			
+			if distance <= dynamicThreshold then
+				pcall(function()
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+					task.wait(0.02)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+				end)
+			end
 		end
 	else
 		if ballStatsActive and statsFrame.Visible then
