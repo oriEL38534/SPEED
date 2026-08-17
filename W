@@ -735,7 +735,7 @@ task.spawn(function()
 	barBackground.BorderSizePixel = 0
 	barBackground.Parent = introFrame
 
-	barFill = Instance.new("Frame")
+	local barFill = Instance.new("Frame")
 	barFill.Size = UDim2.new(0, 0, 1, 0)
 	barFill.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
 	barFill.BorderSizePixel = 0
