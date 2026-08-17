@@ -5,6 +5,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 local pGui = player:WaitForChild("PlayerGui")
@@ -27,6 +28,7 @@ local headlessActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
+local eSpamActive = false
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
@@ -34,8 +36,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 410) -- גודל מותאם להכיל את הסליידר החדש
-frame.Position = UDim2.new(0.5, -240, 0.22, 0)
+frame.Size = UDim2.new(0, 480, 0, 450) -- הוגדל להכיל את כפתור הספאם
+frame.Position = UDim2.new(0.5, -240, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -397,6 +399,35 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
+----------------------------------------------------
+-- מנגנון E-SPAM
+----------------------------------------------------
+local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
+
+local function setESpam(state)
+	eSpamActive = state
+	if eSpamActive then
+		eSpamBtn.Text = "✅ E-Spam: פעיל"
+		eSpamBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+		
+		task.spawn(function()
+			while eSpamActive do
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+				task.wait(0.01)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				task.wait(0.01)
+			end
+		end)
+	else
+		eSpamBtn.Text = "⚡ E-Spam: כבוי"
+		eSpamBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+eSpamBtn.MouseButton1Click:Connect(function()
+	setESpam(not eSpamActive)
+end)
+
 -- עמודה ימנית
 local function applyKorblox()
 	pcall(function()
@@ -555,6 +586,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
+	setESpam(false)
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -645,7 +677,7 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "LOADING CAMERA MODULES [75%]"
+	subLabel.Text = "LOADING INPUT MODULES [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
