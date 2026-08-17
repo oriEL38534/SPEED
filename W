@@ -34,8 +34,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 380)
-frame.Position = UDim2.new(0.5, -240, 0.25, 0)
+frame.Size = UDim2.new(0, 480, 0, 410) -- גודל מותאם להכיל את הסליידר החדש
+frame.Position = UDim2.new(0.5, -240, 0.22, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -107,29 +107,29 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.8, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.15, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.85, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.13, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
 local leftList = Instance.new("UIListLayout")
-leftList.Padding = UDim.new(0, 10)
+leftList.Padding = UDim.new(0, 8)
 leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.8, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.15, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.85, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.13, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
 local rightList = Instance.new("UIListLayout")
-rightList.Padding = UDim.new(0, 10)
+rightList.Padding = UDim.new(0, 8)
 rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
 ----------------------------------------------------
--- 3. פונקציות תנועה
+-- 3. פונקציות תנועה ומצלמה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
 	local char = player.Character or player.CharacterAdded:Wait()
@@ -146,10 +146,17 @@ local function setJumpPower(newPower)
 	end
 end
 
+local function setFOV(newFOV)
+	local cam = Workspace.CurrentCamera
+	if cam then
+		cam.FieldOfView = newFOV
+	end
+end
+
 ----------------------------------------------------
 -- 4. בנאי Sliders & Buttons
 ----------------------------------------------------
-local speedUpdateFunc, jumpUpdateFunc
+local speedUpdateFunc, jumpUpdateFunc, fovUpdateFunc
 
 local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layoutOrder, onValueChange)
 	local container = Instance.new("Frame")
@@ -237,7 +244,7 @@ end
 
 local function createButton(parent, text, layoutOrder, onClick)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 34)
+	btn.Size = UDim2.new(1, 0, 0, 32)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -335,8 +342,9 @@ btnCorner.Parent = resetPeakBtn
 ----------------------------------------------------
 speedUpdateFunc = createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 1, function(val) setSpeed(val) end)
 jumpUpdateFunc = createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 2, function(val) setJumpPower(val) end)
+fovUpdateFunc = createSlider(leftCol, "👁️ FOV", 70, 150, 70, 3, function(val) setFOV(val) end)
 
-local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 3, function() end)
+local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 4, function() end)
 
 local ACTION_NAME = "InfJumpAction"
 
@@ -370,7 +378,7 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
-local ballStatsBtn = createButton(leftCol, "⚔️ Ball Stats: כבוי", 4, function() end)
+local ballStatsBtn = createButton(leftCol, "⚔️ Ball Stats: כבוי", 5, function() end)
 
 local function setBallStats(state)
 	ballStatsActive = state
@@ -447,7 +455,7 @@ end
 headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
 
 ----------------------------------------------------
--- ניהול תאורה חכם (כיבוי מחזיר לברירת המחדל)
+-- ניהול תאורה חכם
 ----------------------------------------------------
 local darkBtn, lightBtn
 
@@ -459,18 +467,15 @@ end
 
 darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
 	if darkLightingActive then
-		-- כיבוי והחזרה לגרפיקה רגילה
 		darkLightingActive = false
 		darkBtn.Text = "🌒 מצב כהה: כבוי"
 		darkBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 		restoreDefaultLighting()
 	else
-		-- הפעלה
 		darkLightingActive = true
 		darkBtn.Text = "✅ מצב כהה: פעיל"
 		darkBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
 
-		-- כיבוי המצב הבהיר במידה ופועל
 		lightLightingActive = false
 		lightBtn.Text = "☀️ מצב בהיר: כבוי"
 		lightBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -483,18 +488,15 @@ end)
 
 lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, function()
 	if lightLightingActive then
-		-- כיבוי והחזרה לגרפיקה רגילה
 		lightLightingActive = false
 		lightBtn.Text = "☀️ מצב בהיר: כבוי"
 		lightBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 		restoreDefaultLighting()
 	else
-		-- הפעלה
 		lightLightingActive = true
 		lightBtn.Text = "✅ מצב בהיר: פעיל"
 		lightBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
 
-		-- כיבוי המצב הכהה במידה ופועל
 		darkLightingActive = false
 		darkBtn.Text = "🌒 מצב כהה: כבוי"
 		darkBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -566,6 +568,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 
 	speedUpdateFunc(30)
 	jumpUpdateFunc(50)
+	fovUpdateFunc(70)
 	peakSpeed = 0
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
@@ -642,7 +645,7 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "LOADING LIGHTING TOGGLES [75%]"
+	subLabel.Text = "LOADING CAMERA MODULES [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
