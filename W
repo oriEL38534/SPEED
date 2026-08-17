@@ -36,7 +36,7 @@ local eSpamActive = false
 local autoParryActive = false
 local autoLoadActive = false
 
--- ערכים נוכחיים להגדרות (עבור מערכת השמירה)
+-- ערכים נוכחיים להגדרות
 local currentSavedSpeed = 30
 local currentSavedJump = 50
 local currentSavedFOV = 70
@@ -447,7 +447,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY מהיר, מוקדם ומדויק
+-- 🛡️ מנגנון AUTO PARRY
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -786,31 +786,50 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
--- 🛡️ שמירה חזקה וקבועה של מהירות וקפיצה גם אחרי מוות וריספון
-player.CharacterAdded:Connect(function(char)
+----------------------------------------------------
+-- 🛡️ פונקציית שמירה אולטימטיבית שמופעלת בכל יצירת דמות / מוות
+----------------------------------------------------
+local function setupCharacter(char)
 	local hum = char:WaitForChild("Humanoid", 10)
-	
-	-- נעשה כמה בדיקות רצופות כדי שהמשחק לא ידרוס את זה בחזרה לברירת המחדל
-	for i = 1, 5 do
-		task.wait(0.2)
-		local currentHum = char:FindFirstChildOfClass("Humanoid")
-		if currentHum then
-			currentHum.WalkSpeed = currentSavedSpeed
-			currentHum.UseJumpPower = true
-			currentHum.JumpPower = currentSavedJump
-		end
-	end
-	
+	if not hum then return end
+
+	-- החלה מיידית של הערכים השמורים
+	hum.WalkSpeed = currentSavedSpeed
+	hum.UseJumpPower = true
+	hum.JumpPower = currentSavedJump
+
+	-- החלת מראה (Korblox / Headless / Invisible)
 	if korbloxActive then applyKorblox() end
 	if headlessActive then applyHeadless() end
 	if invisibleActive then applyInvisible(true) end
-	
-	if autoLoadActive then
-		pcall(function()
-			loadProfileData()
-		end)
-	end
-end)
+
+	-- ווידוא עקשן בלופ קצר למקרה שהמשחק מנסה לדרוס את הנתונים לאחר הריספון
+	task.spawn(function()
+		for i = 1, 10 do
+			task.wait(0.2)
+			if char and char.Parent and hum and hum.Parent then
+				hum.WalkSpeed = currentSavedSpeed
+				hum.UseJumpPower = true
+				hum.JumpPower = currentSavedJump
+			else
+				break
+			end
+		end
+	end)
+
+	-- מאזין לרגע שבו השחקן מת כדי לוודא שהערכים נשמרים בזיכרון גם במוות הבא
+	hum.Died:Connect(function()
+		-- השחקן מת, הערכים כבר שמורים במשתנים currentSavedSpeed ו-currentSavedJump
+	end)
+end
+
+-- הפעלה ראשונית על הדמות הנוכחית
+if player.Character then
+	setupCharacter(player.Character)
+end
+
+-- מאזין לכל פעם שהשחקן מת וחוזר לחיים (Respawn)
+player.CharacterAdded:Connect(setupCharacter)
 
 ----------------------------------------------------
 -- 8. מסך פתיחה (Intro)
