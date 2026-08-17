@@ -28,14 +28,14 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 520)
+frame.Size = UDim2.new(0, 220, 0, 640) -- הגדלת גובה התפריט עבור כפתורי הקפיצה
 frame.Position = UDim2.new(0.05, 0, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 frame.BorderSizePixel = 1
 frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 frame.Active = true
 frame.Draggable = true
-frame.Visible = false -- מוסתר עד סיום ההנפשה
+frame.Visible = false
 frame.Parent = screenGui
 
 local frameCorner = Instance.new("UICorner")
@@ -75,7 +75,7 @@ toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
 toggleBtn.Draggable = true
-toggleBtn.Visible = false -- מוסתר עד סיום ההנפשה
+toggleBtn.Visible = false
 toggleBtn.Parent = screenGui
 
 local toggleCorner = Instance.new("UICorner")
@@ -90,46 +90,48 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. פונקציות קוסמטיקה (תמיכה ב-R6 ו-R15)
+-- 2. פונקציות קוסמטיקה
 ----------------------------------------------------
 local function applyKorblox()
-	local char = player.Character
-	if not char then return end
-	
-	-- בדיקת דמות R6
-	local rightLegR6 = char:FindFirstChild("Right Leg")
-	if rightLegR6 then
-		local mesh = char:FindFirstChildOfClass("CharacterMesh")
-		if not mesh or mesh.BodyPart ~= Enum.BodyPart.RightLeg then
-			mesh = Instance.new("CharacterMesh")
-			mesh.BodyPart = Enum.BodyPart.RightLeg
-			mesh.Parent = char
+	pcall(function()
+		local char = player.Character
+		if not char then return end
+		
+		local rightLegR6 = char:FindFirstChild("Right Leg")
+		if rightLegR6 then
+			local mesh = char:FindFirstChildOfClass("CharacterMesh")
+			if not mesh or mesh.BodyPart ~= Enum.BodyPart.RightLeg then
+				mesh = Instance.new("CharacterMesh")
+				mesh.BodyPart = Enum.BodyPart.RightLeg
+				mesh.Parent = char
+			end
+			mesh.MeshId = 90294209
+			rightLegR6.Transparency = 0
+		else
+			local rightLower = char:FindFirstChild("RightLowerLeg")
+			local rightFoot = char:FindFirstChild("RightFoot")
+			if rightLower then
+				local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
+				mesh.MeshId = "rbxassetid://90294209"
+				mesh.TextureId = "rbxassetid://90284029"
+			end
+			if rightFoot then rightFoot.Transparency = 1 end
 		end
-		mesh.MeshId = 90294209
-		rightLegR6.Transparency = 0
-	else
-		-- בדיקת דמות R15
-		local rightLower = char:FindFirstChild("RightLowerLeg")
-		local rightFoot = char:FindFirstChild("RightFoot")
-		if rightLower then
-			local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
-			mesh.MeshId = "rbxassetid://90294209"
-			mesh.TextureId = "rbxassetid://90284029"
-		end
-		if rightFoot then rightFoot.Transparency = 1 end
-	end
+	end)
 end
 
 local function applyHeadless()
-	local char = player.Character
-	if not char then return end
-	
-	local head = char:FindFirstChild("Head")
-	if head then
-		head.Transparency = 1
-		local face = head:FindFirstChildOfClass("Decal")
-		if face then face.Transparency = 1 end
-	end
+	pcall(function()
+		local char = player.Character
+		if not char then return end
+		
+		local head = char:FindFirstChild("Head")
+		if head then
+			head.Transparency = 1
+			local face = head:FindFirstChildOfClass("Decal")
+			if face then face.Transparency = 1 end
+		end
+	end)
 end
 
 player.CharacterAdded:Connect(function(char)
@@ -146,6 +148,15 @@ local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid then humanoid.WalkSpeed = newSpeed end
+end
+
+local function setJumpPower(newPower)
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.UseJumpPower = true
+		humanoid.JumpPower = newPower
+	end
 end
 
 local function createButton(text, positionY, onClick)
@@ -219,11 +230,18 @@ local function applyBlackAura()
 	end
 end
 
+-- מהירות
 createButton("מהירות 30", 45, function() setSpeed(30) end)
 createButton("מהירות 100", 85, function() setSpeed(100) end)
 createButton("מהירות 200", 125, function() setSpeed(200) end)
 
-local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 165, function() end)
+-- גובה קפיצה (30 עד 200)
+createButton("🦘 קפיצה 30", 165, function() setJumpPower(30) end)
+createButton("🦘 קפיצה 80", 205, function() setJumpPower(80) end)
+createButton("🦘 קפיצה 200", 245, function() setJumpPower(200) end)
+
+-- Infinite Jump
+local infJumpBtn = createButton("♾️ Infinite Jump: כבוי", 285, function() end)
 
 local ACTION_NAME = "InfJumpAction"
 
@@ -243,7 +261,7 @@ end
 local function disableInfJump()
 	infJumpActive = false
 	ContextActionService:UnbindAction(ACTION_NAME)
-	infJumpBtn.Text = "🦘 Infinite Jump: כבוי"
+	infJumpBtn.Text = "♾️ Infinite Jump: כבוי"
 	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
@@ -259,7 +277,8 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
-local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 205, function() end)
+-- קוסמטיקה
+local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 325, function() end)
 korbloxBtn.MouseButton1Click:Connect(function()
 	korbloxActive = not korbloxActive
 	if korbloxActive then
@@ -272,7 +291,7 @@ korbloxBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local headlessBtn = createButton("💀 Headless: כבוי", 245, function() end)
+local headlessBtn = createButton("💀 Headless: כבוי", 365, function() end)
 headlessBtn.MouseButton1Click:Connect(function()
 	headlessActive = not headlessActive
 	if headlessActive then
@@ -285,7 +304,8 @@ headlessBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-createButton("🌒 מצב כהה", 285, function()
+-- תאורה ואיפוס
+createButton("🌒 מצב כהה", 405, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
@@ -294,7 +314,7 @@ createButton("🌒 מצב כהה", 285, function()
 	applyDarkHighlights()
 end)
 
-createButton("☀️ מצב בהיר", 325, function()
+createButton("☀️ מצב בהיר", 445, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
@@ -304,7 +324,7 @@ createButton("☀️ מצב בהיר", 325, function()
 	applyBlackAura()
 end)
 
-createButton("🔄 החזר גרפיקה לרגיל", 365, function()
+createButton("🔄 החזר גרפיקה לרגיל", 485, function()
 	removeHighlights()
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2
@@ -314,7 +334,7 @@ createButton("🔄 החזר גרפיקה לרגיל", 365, function()
 	Lighting.FogEnd = 10000
 end)
 
-local resetAllBtn = createButton("🛑 איפוס הכל", 405, function() end)
+local resetAllBtn = createButton("🛑 איפוס הכל", 525, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
 resetAllBtn.MouseButton1Click:Connect(function()
@@ -327,6 +347,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	headlessBtn.Text = "💀 Headless: כבוי"
 	headlessBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 	setSpeed(16)
+	setJumpPower(50) -- איפוס גובה קפיצה לברירת מחדל
 end)
 
 ----------------------------------------------------
@@ -431,7 +452,7 @@ task.spawn(function()
 	if rgbConnection then rgbConnection:Disconnect() end
 	introGui:Destroy()
 
-	-- הצגת התפריט באופן ודאי
+	-- הצגת התפריט
 	frame.Visible = true
 	toggleBtn.Visible = true
 end)
