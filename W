@@ -421,7 +421,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- מנגנון E-SPAM (מהיר וחזק)
+-- מנגנון E-SPAM (מתוקן - מונע KICK)
 ----------------------------------------------------
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
@@ -435,10 +435,10 @@ local function setESpam(state)
 			while eSpamActive do
 				pcall(function()
 					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-					task.wait(0.01)
+					task.wait(0.1) -- השהיה בטוחה
 					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 				end)
-				RunService.RenderStepped:Wait()
+				task.wait(0.1) -- השהיה נוספת בתוך הלולאה
 			end
 		end)
 	else
