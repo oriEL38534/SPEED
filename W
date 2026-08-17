@@ -1,12 +1,16 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ContextActionService = game:GetService("ContextActionService")
+local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 -- משתנים לניהול מצב
 local infJumpActive = false
+local autoParryActive = false
+local autoParryConnection = nil
 local highlightsFolder = nil
 local createdLight = nil
 
@@ -22,9 +26,9 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת הראשית
+-- יצירת המסגרת הראשית (הגדלתי מעט את הגובה בשביל Auto Parry)
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 420)
+frame.Size = UDim2.new(0, 220, 0, 460)
 frame.Position = UDim2.new(0.05, 0, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 frame.BorderSizePixel = 1
@@ -153,7 +157,7 @@ local function findBall()
 	return nil
 end
 
--- יצירת הילות למצב כהה (כדור אש + שחקנים בתכלת)
+-- יצירת הילות למצב כהה
 local function applyDarkHighlights()
 	removeHighlights()
 	
@@ -195,7 +199,7 @@ local function applyDarkHighlights()
 	end
 end
 
--- יצירת הילה שחורה כהה ומודגשת לשחקנים ולכדור
+-- יצירת הילה שחורה כהה לשחקנים ולכדור
 local function applyBlackAura()
 	removeHighlights()
 	
@@ -203,26 +207,24 @@ local function applyBlackAura()
 	highlightsFolder.Name = "BlackAuraHighlights"
 	highlightsFolder.Parent = Workspace
 
-	-- הילה שחורה קהה לכדור
 	local targetBall = findBall()
 	if targetBall then
 		local ballBlackHighlight = Instance.new("Highlight")
 		ballBlackHighlight.Name = "Ball_BlackAura"
 		ballBlackHighlight.FillColor = Color3.fromRGB(0, 0, 0)
-		ballBlackHighlight.FillTransparency = 0.05 -- שחור כמעט אטום
+		ballBlackHighlight.FillTransparency = 0.05
 		ballBlackHighlight.OutlineColor = Color3.fromRGB(0, 0, 0)
 		ballBlackHighlight.OutlineTransparency = 0
 		ballBlackHighlight.Parent = highlightsFolder
 		ballBlackHighlight.Adornee = targetBall
 	end
 
-	-- הילה שחורה כהה לכל השחקנים
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character then
 			local blackHighlight = Instance.new("Highlight")
 			blackHighlight.Name = plr.Name .. "_BlackAura"
 			blackHighlight.FillColor = Color3.fromRGB(0, 0, 0)
-			blackHighlight.FillTransparency = 0.05 -- שחור כמעט אטום ומודגש מאוד
+			blackHighlight.FillTransparency = 0.05
 			blackHighlight.OutlineColor = Color3.fromRGB(0, 0, 0)
 			blackHighlight.OutlineTransparency = 0
 			blackHighlight.Parent = highlightsFolder
@@ -239,7 +241,7 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 -- כפתור Infinite Jump
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
--- מנגנון קפיצה מבוסס ContextActionService
+-- מנגנון Infinite Jump
 local ACTION_NAME = "InfJumpAction"
 
 local function handleJumpAction(actionName, inputState, inputObject)
@@ -273,15 +275,73 @@ local function enableInfJump()
 end
 
 infJumpBtn.MouseButton1Click:Connect(function()
-	if infJumpActive then 
-		disableInfJump() 
-	else 
-		enableInfJump() 
+	if infJumpActive then disableInfJump() else enableInfJump() end
+end)
+
+-- כפתור AUTO PARRY
+local autoParryBtn = createButton("⚔️ Auto Parry: כבוי", 215, function() end)
+
+-- לוגיקת AUTO PARRY בזמן אמת
+local function performParry()
+	-- שליחת מקש F / לחיצה שמבצעת Parry במשחק
+	VirtualInputManager:SendKeyPressEvent(Enum.KeyCode.F, false, game)
+	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+	task.wait(0.01)
+	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+end
+
+local function disableAutoParry()
+	autoParryActive = false
+	if autoParryConnection then
+		autoParryConnection:Disconnect()
+		autoParryConnection = nil
 	end
+	autoParryBtn.Text = "⚔️ Auto Parry: כבוי"
+	autoParryBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+end
+
+local function enableAutoParry()
+	disableAutoParry()
+	autoParryActive = true
+	autoParryBtn.Text = "✅ Auto Parry: פעיל"
+	autoParryBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+
+	autoParryConnection = RunService.PreRender:Connect(function()
+		if not autoParryActive then return end
+
+		local char = player.Character
+		if not char then return end
+		local root = char:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+
+		local ball = findBall()
+		if not ball then return end
+
+		-- חישוב מרחק ומהירות הכדור אל השחקן
+		local ballPos = ball.Position
+		local ballVel = ball.AssemblyLinearVelocity
+		local distance = (ballPos - root.Position).Magnitude
+		local speed = ballVel.Magnitude
+
+		-- סף מרחק דינמי מבוסס מהירות
+		local parryDistance = math.clamp(speed * 0.4, 15, 60)
+
+		if distance <= parryDistance then
+			-- בדיקה שהכדור אכן נע לכיוון השחקן
+			local dotProduct = (root.Position - ballPos).Unit:Dot(ballVel.Unit)
+			if dotProduct > 0.2 or distance < 18 then
+				performParry()
+			end
+		end
+	end)
+end
+
+autoParryBtn.MouseButton1Click:Connect(function()
+	if autoParryActive then disableAutoParry() else enableAutoParry() end
 end)
 
 -- שליטה בגרפיקת המשחק
-createButton("🌒 כהה (עם כדור זרחני)", 215, function()
+createButton("🌒 כהה (עם כדור זרחני)", 260, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
@@ -291,7 +351,7 @@ createButton("🌒 כהה (עם כדור זרחני)", 215, function()
 	applyDarkHighlights()
 end)
 
-createButton("☀️ בהיר (אורה שחורה כהה)", 260, function()
+createButton("☀️ בהיר (אורה שחורה כהה)", 305, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
@@ -302,7 +362,7 @@ createButton("☀️ בהיר (אורה שחורה כהה)", 260, function()
 	applyBlackAura()
 end)
 
-createButton("🔄 החזר גרפיקה לרגיל", 305, function()
+createButton("🔄 החזר גרפיקה לרגיל", 350, function()
 	removeHighlights()
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2
@@ -313,11 +373,12 @@ createButton("🔄 החזר גרפיקה לרגיל", 305, function()
 end)
 
 -- כפתור איפוס הכל
-local resetAllBtn = createButton("🛑 איפוס הכל (מהירות+קפיצה)", 355, function() end)
+local resetAllBtn = createButton("🛑 איפוס הכל (מהירות+קפיצה+AutoParry)", 395, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
 resetAllBtn.MouseButton1Click:Connect(function()
 	removeHighlights()
 	disableInfJump()
+	disableAutoParry()
 	setSpeed(16)
 end)
