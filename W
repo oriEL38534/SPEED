@@ -417,7 +417,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM (מתוקן עם עצירה וודאית)
+-- מנגנון E-SPAM (מתוקן עם הפסקה מוחלטת של שליחת המקשים)
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -439,6 +439,10 @@ local function setESpam(state)
 	else
 		eSpamBtn.Text = "⚡ E-Spam: כבוי"
 		eSpamBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+		-- וידוא ניתוק מוחלט של המקש למניעת היתקעות
+		pcall(function()
+			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+		end)
 	end
 end
 
@@ -459,6 +463,9 @@ local function setAutoParry(state)
 	else
 		autoParryBtn.Text = "🛡️ Auto Parry: כבוי"
 		autoParryBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+		pcall(function()
+			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+		end)
 	end
 end
 
