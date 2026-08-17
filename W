@@ -1,12 +1,12 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 -- משתנים לניהול מצב
 local infJumpActive = false
-local infJumpConnection = nil
 local highlightsFolder = nil
 local createdLight = nil
 
@@ -203,13 +203,27 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 -- כפתור Infinite Jump
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
--- מנגנון Infinite Jump קשיח עם עצירה מוחלטת
+-- מנגנון קפיצה קשיח מבוסס ContextActionService
+local ACTION_NAME = "InfJumpAction"
+
+local function handleJumpAction(actionName, inputState, inputObject)
+	if inputState == Enum.UserInputState.Begin then
+		if infJumpActive then
+			local char = player.Character
+			if char then
+				local hum = char:FindFirstChildOfClass("Humanoid")
+				if hum then
+					hum:ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+			end
+		end
+	end
+	return Enum.ContextAnimationFrame.Pass
+end
+
 local function disableInfJump()
 	infJumpActive = false
-	if infJumpConnection then
-		infJumpConnection:Disconnect()
-		infJumpConnection = nil
-	end
+	ContextActionService:UnbindAction(ACTION_NAME)
 	infJumpBtn.Text = "🦘 Infinite Jump: כבוי"
 	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
@@ -217,21 +231,9 @@ end
 local function enableInfJump()
 	disableInfJump()
 	infJumpActive = true
+	ContextActionService:BindAction(ACTION_NAME, handleJumpAction, false, Enum.KeyCode.Space)
 	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
 	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
-	
-	infJumpConnection = UserInputService.JumpRequest:Connect(function()
-		if not infJumpActive then return end
-		
-		local char = player.Character
-		if char then
-			local hum = char:FindFirstChildOfClass("Humanoid")
-			if hum then
-				-- קפיצה תתבצע אך ורק אם המצב מופעל אקטיבית
-				hum:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-		end
-	end)
 end
 
 infJumpBtn.MouseButton1Click:Connect(function()
