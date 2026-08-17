@@ -6,7 +6,6 @@ local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 
 local pGui = player:WaitForChild("PlayerGui")
@@ -32,7 +31,6 @@ local darkLightingActive = false
 local lightLightingActive = false
 local eSpamActive = false
 local autoParryActive = false
-local autoLoadActive = false
 
 -- ערכים נוכחיים להגדרות
 local currentSavedSpeed = 30
@@ -220,14 +218,6 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 
 	local isDragging = false
 
-	local function setDirectValue(val)
-		val = math.clamp(val, minVal, maxVal)
-		local scale = (val - minVal) / (maxVal - minVal)
-		fill.Size = UDim2.new(scale, 0, 1, 0)
-		sliderLabel.Text = titleText .. ": " .. tostring(val)
-		onValueChange(val)
-	end
-
 	local function updateValue(input)
 		local posX = input.Position.X - sliderBG.AbsolutePosition.X
 		local scale = math.clamp(posX / sliderBG.AbsoluteSize.X, 0, 1)
@@ -256,8 +246,6 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 			updateValue(input)
 		end
 	end)
-
-	return setDirectValue
 end
 
 local function createButton(parent, text, layoutOrder, onClick)
@@ -358,9 +346,9 @@ btnCorner.Parent = resetPeakBtn
 ----------------------------------------------------
 -- 6. הרכבת האלמנטים בעמודות
 ----------------------------------------------------
-speedUpdateFunc = createSlider(leftCol, "⚡ מהירות", 16, 100, 30, 1, function(val) setSpeed(val) end)
-jumpUpdateFunc = createSlider(leftCol, "🦘 גובה קפיצה", 50, 120, 50, 2, function(val) setJumpPower(val) end)
-fovUpdateFunc = createSlider(leftCol, "👁️ FOV", 70, 120, 70, 3, function(val) setFOV(val) end)
+createSlider(leftCol, "⚡ מהירות", 16, 100, 30, 1, function(val) setSpeed(val) end)
+createSlider(leftCol, "🦘 גובה קפיצה", 50, 120, 50, 2, function(val) setJumpPower(val) end)
+createSlider(leftCol, "👁️ FOV", 70, 120, 70, 3, function(val) setFOV(val) end)
 
 local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 4, function() end)
 
@@ -604,90 +592,7 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 5, functio
 	end
 end)
 
-local fileName = "SpeedHub_Profile.json"
-
-local function loadProfileData()
-	if readfile and isfile and isfile(fileName) then
-		local success, decoded = pcall(function()
-			local content = readfile(fileName)
-			return HttpService:JSONDecode(content)
-		end)
-		
-		if success and decoded then
-			if decoded.Speed then speedUpdateFunc(decoded.Speed) end
-			if decoded.Jump then jumpUpdateFunc(decoded.Jump) end
-			if decoded.FOV then fovUpdateFunc(decoded.FOV) end
-			
-			if decoded.InfJump ~= nil then
-				if decoded.InfJump then enableInfJump() else disableInfJump() end
-			end
-			if decoded.Korblox ~= nil then setKorblox(decoded.Korblox) end
-			if decoded.Headless ~= nil then setHeadless(decoded.Headless) end
-			if decoded.Invisible ~= nil then setInvisible(decoded.Invisible) end
-			if decoded.AutoParry ~= nil then setAutoParry(decoded.AutoParry) end
-			if decoded.AutoLoad ~= nil then autoLoadActive = decoded.AutoLoad end
-			
-			if decoded.DarkLighting then
-				darkLightingActive = false
-				darkBtn.MouseButton1Click:Fire()
-			elseif decoded.LightLighting then
-				lightLightingActive = false
-				lightBtn.MouseButton1Click:Fire()
-			end
-		end
-	end
-end
-
-local saveBtn = createButton(rightCol, "💾 Save Profile", 6, function()
-	local profileData = {
-		Speed = currentSavedSpeed,
-		Jump = currentSavedJump,
-		FOV = currentSavedFOV,
-		InfJump = infJumpActive,
-		Korblox = korbloxActive,
-		Headless = headlessActive,
-		Invisible = invisibleActive,
-		DarkLighting = darkLightingActive,
-		LightLighting = lightLightingActive,
-		AutoParry = autoParryActive,
-		AutoLoad = autoLoadActive
-	}
-	
-	local success, encoded = pcall(function()
-		return HttpService:JSONEncode(profileData)
-	end)
-	
-	if success and writefile then
-		pcall(function()
-			writefile(fileName, encoded)
-		end)
-	end
-end)
-saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
-
-local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 7, function()
-	loadProfileData()
-end)
-loadProfileBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 140)
-
-local autoLoadBtn = createButton(rightCol, "⚡ Auto Load: כבוי", 8, function() end)
-
-local function setAutoLoad(state)
-	autoLoadActive = state
-	if autoLoadActive then
-		autoLoadBtn.Text = "✅ Auto Load: פעיל"
-		autoLoadBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-	else
-		autoLoadBtn.Text = "⚡ Auto Load: כבוי"
-		autoLoadBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-	end
-end
-
-autoLoadBtn.MouseButton1Click:Connect(function()
-	setAutoLoad(not autoLoadActive)
-end)
-
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 9, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 6, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 local peakSpeed = 0
@@ -701,11 +606,25 @@ end)
 local function getBall()
 	local ballsFolder = Workspace:FindFirstChild("Balls")
 	if ballsFolder then
+		local closestBall = nil
+		local shortestDist = math.huge
+		local char = player.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		
 		for _, v in pairs(ballsFolder:GetChildren()) do
 			if v:IsA("BasePart") and v.Transparency < 1 then
-				return v
+				if root then
+					local dist = (v.Position - root.Position).Magnitude
+					if dist < shortestDist then
+						shortestDist = dist
+						closestBall = v
+					end
+				else
+					return v
+				end
 			end
 		end
+		return closestBall
 	end
 	return Workspace:FindFirstChild("Ball")
 end
@@ -731,12 +650,10 @@ RunService.RenderStepped:Connect(function()
 			local dynamicThreshold = math.clamp(40 + (currentSpeed * 0.22), 45, 150)
 			
 			if distance <= dynamicThreshold then
-				-- בדיקה האם הכדור באמת מגיע לכיוון שלך (Dot Product)
 				local directionToPlayer = (rootPart.Position - ball.Position).Unit
 				local ballVelocityDir = ball.AssemblyLinearVelocity.Unit
 				local dotProduct = ballVelocityDir:Dot(directionToPlayer)
 				
-				-- אם הכדור נע לכיוון שלך (dotProduct > 0.1)
 				if dotProduct > 0.1 then
 					local currentTime = tick()
 					if currentTime - lastParryTick > 0.35 then
@@ -765,7 +682,6 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setBallStats(false)
 	setESpam(false)
 	setAutoParry(false)
-	setAutoLoad(false)
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -886,17 +802,6 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 
 	task.wait(0.5)
-	
-	pcall(function()
-		if readfile and isfile and isfile(fileName) then
-			local content = readfile(fileName)
-			local decoded = HttpService:JSONDecode(content)
-			if decoded and decoded.AutoLoad then
-				loadProfileData()
-			end
-		end
-	end)
-
 	introGui:Destroy()
 
 	frame.Visible = true
