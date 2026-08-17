@@ -19,7 +19,7 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת הראשית (עיצוב כהה ויוקרתי)
+-- יצירת המסגרת הראשית (עיצוב כהה)
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 220, 0, 320)
 frame.Position = UDim2.new(0.05, 0, 0.3, 0)
@@ -30,12 +30,12 @@ frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 
--- עיגול פינות למסגרת
+-- עיגול פינות
 local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
 
--- כותרת "הסקריפט שלי"
+-- כותרת
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
@@ -123,7 +123,7 @@ createButton("מהירות 100", 90, function() setSpeed(100) end)
 createButton("מהירות 200", 130, function() setSpeed(200) end)
 createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 
--- מנגנון ספאם מקש E מהיר בלחיצה ממושכת
+-- מנגנון ספאם מבוקר למניעת זיהוי BAC Anti-Cheat
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and spamEnabled then
@@ -131,9 +131,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		task.spawn(function()
 			while isSpamming and spamEnabled do
 				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait()
+				task.wait(0.03)
 				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-				task.wait()
+				task.wait(0.05)
 			end
 		end)
 	end
