@@ -562,11 +562,32 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 end)
 
 ----------------------------------------------------
+-- 🚀 Anti-Lag (500 KPS)
+----------------------------------------------------
+local function applyAntiLag()
+	pcall(function()
+		for _, obj in pairs(Workspace:GetDescendants()) do
+			if obj:IsA("Decal") or obj:IsA("Texture") then
+				obj:Destroy()
+			elseif obj:IsA("BasePart") then
+				obj.Material = Enum.Material.SmoothPlastic
+			end
+		end
+	end)
+end
+
+local antiLagBtn = createButton(rightCol, "🚀 Anti-Lag (500 KPS)", 5, function(btn)
+	applyAntiLag()
+	btn.Text = "✅ Anti-Lag: פעיל"
+	btn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+end)
+
+----------------------------------------------------
 -- 💾 מערכת שמירה וטעינה (Save & Load Profile)
 ----------------------------------------------------
 local fileName = "SpeedHub_Profile.json"
 
-local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
+local saveBtn = createButton(rightCol, "💾 Save Profile", 6, function()
 	local profileData = {
 		Speed = currentSavedSpeed,
 		Jump = currentSavedJump,
@@ -591,7 +612,7 @@ local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
 end)
 saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
 
-local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
+local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 7, function()
 	if readfile and isfile and isfile(fileName) then
 		local success, decoded = pcall(function()
 			local content = readfile(fileName)
@@ -625,7 +646,7 @@ local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
 end)
 loadProfileBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 140)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 print("LOAD: Left and right column features fully assembled.")
@@ -798,5 +819,3 @@ task.spawn(function()
 	frame.Visible = true
 	toggleBtn.Visible = true
 end)
-
-print("LOAD: Script successfully fully loaded and executed!")
