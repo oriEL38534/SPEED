@@ -14,7 +14,7 @@ if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 
 ----------------------------------------------------
--- 1. יצירת הממשק הראשי (עם אלמנטים בסגול)
+-- 1. יצירת הממשק הראשי
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
@@ -25,10 +25,10 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- חלון רחב
+-- חלון מורחב מותאם לסטטיסטיקות (460x420)
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 460, 0, 360)
-frame.Position = UDim2.new(0.5, -230, 0.25, 0)
+frame.Size = UDim2.new(0, 460, 0, 420)
+frame.Position = UDim2.new(0.5, -230, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(18, 16, 25)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -40,17 +40,15 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 10)
 frameCorner.Parent = frame
 
--- מסגרת סגולה ניאון
 local frameStroke = Instance.new("UIStroke")
 frameStroke.Color = Color3.fromRGB(170, 0, 255)
 frameStroke.Thickness = 2
 frameStroke.Parent = frame
 
--- כותרת בסגול בהיר
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -40, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
-title.Text = "⚡ SPEED & JUMP HUB"
+title.Text = "⚡ SPEED & BLADE BALL HUB"
 title.TextColor3 = Color3.fromRGB(200, 130, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 17
@@ -68,7 +66,6 @@ closeBtn.TextSize = 18
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.Parent = frame
 
--- כפתור פתיחה/סגירה צף ממוסגר בסגול
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 90, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
@@ -103,14 +100,14 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.47, 0, 0.82, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.14, 0)
+leftCol.Size = UDim2.new(0.47, 0, 0.52, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.11, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.47, 0, 0.82, 0)
-rightCol.Position = UDim2.new(0.50, 0, 0.14, 0)
+rightCol.Size = UDim2.new(0.47, 0, 0.52, 0)
+rightCol.Position = UDim2.new(0.50, 0, 0.11, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
@@ -133,7 +130,7 @@ local function setJumpPower(newPower)
 end
 
 ----------------------------------------------------
--- 4. בנאי Sliders & Buttons עם גוון סגול
+-- 4. בנאי Sliders & Buttons
 ----------------------------------------------------
 local function createSlider(parent, titleText, minVal, maxVal, defaultVal, positionY, onValueChange)
 	local sliderLabel = Instance.new("TextLabel")
@@ -160,7 +157,6 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, posit
 	bgCorner.CornerRadius = UDim.new(1, 0)
 	bgCorner.Parent = sliderBG
 
-	-- פס מילוי סגול זוהר
 	local fill = Instance.new("Frame")
 	local startScale = (defaultVal - minVal) / (maxVal - minVal)
 	fill.Size = UDim2.new(math.clamp(startScale, 0, 1), 0, 1, 0)
@@ -230,17 +226,11 @@ local function createButton(parent, text, positionY, onClick)
 end
 
 ----------------------------------------------------
--- 5. הוספת אלמנטים - עמודה ימנית
+-- 5. אלמנטים רגילים
 ----------------------------------------------------
-createSlider(leftCol, "⚡ מהירות (Speed)", 30, 200, 30, 10, function(val)
-	setSpeed(val)
-end)
+createSlider(leftCol, "⚡ מהירות (Speed)", 30, 200, 30, 10, function(val) setSpeed(val) end)
+createSlider(leftCol, "🦘 גובה קפיצה (Jump)", 30, 200, 50, 60, function(val) setJumpPower(val) end)
 
-createSlider(leftCol, "🦘 גובה קפיצה (Jump)", 30, 200, 50, 60, function(val)
-	setJumpPower(val)
-end)
-
--- Infinite Jump
 local infJumpBtn = createButton(leftCol, "♾️ Infinite Jump: כבוי", 115, function() end)
 
 local ACTION_NAME = "InfJumpAction"
@@ -278,33 +268,18 @@ end)
 local resetAllBtn = createButton(leftCol, "🛑 איפוס הכל", 160, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(140, 30, 50)
 
-----------------------------------------------------
--- 6. הוספת אלמנטים - עמודה שמאלית
-----------------------------------------------------
 local function applyKorblox()
 	pcall(function()
 		local char = player.Character
 		if not char then return end
-		local rightLegR6 = char:FindFirstChild("Right Leg")
-		if rightLegR6 then
-			local mesh = char:FindFirstChildOfClass("CharacterMesh")
-			if not mesh or mesh.BodyPart ~= Enum.BodyPart.RightLeg then
-				mesh = Instance.new("CharacterMesh")
-				mesh.BodyPart = Enum.BodyPart.RightLeg
-				mesh.Parent = char
-			end
-			mesh.MeshId = 90294209
-			rightLegR6.Transparency = 0
-		else
-			local rightLower = char:FindFirstChild("RightLowerLeg")
-			local rightFoot = char:FindFirstChild("RightFoot")
-			if rightLower then
-				local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
-				mesh.MeshId = "rbxassetid://90294209"
-				mesh.TextureId = "rbxassetid://90284029"
-			end
-			if rightFoot then rightFoot.Transparency = 1 end
+		local rightLower = char:FindFirstChild("RightLowerLeg")
+		local rightFoot = char:FindFirstChild("RightFoot")
+		if rightLower then
+			local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
+			mesh.MeshId = "rbxassetid://90294209"
+			mesh.TextureId = "rbxassetid://90284029"
 		end
+		if rightFoot then rightFoot.Transparency = 1 end
 	end)
 end
 
@@ -365,6 +340,130 @@ createButton(rightCol, "🔄 איפוס גרפיקה", 170, function()
 	Lighting.GlobalShadows = true
 end)
 
+----------------------------------------------------
+-- 6. תיבת סטטיסטיקות BLADE BALL (מנטר בזמן אמת)
+----------------------------------------------------
+local statsContainer = Instance.new("Frame")
+statsContainer.Size = UDim2.new(0.94, 0, 0.32, 0)
+statsContainer.Position = UDim2.new(0.03, 0, 0.65, 0)
+statsContainer.BackgroundColor3 = Color3.fromRGB(24, 20, 32)
+statsContainer.BorderSizePixel = 0
+statsContainer.Parent = frame
+
+local statsCorner = Instance.new("UICorner")
+statsCorner.CornerRadius = UDim.new(0, 8)
+statsCorner.Parent = statsContainer
+
+local statsStroke = Instance.new("UIStroke")
+statsStroke.Color = Color3.fromRGB(120, 40, 180)
+statsStroke.Thickness = 1
+statsStroke.Parent = statsContainer
+
+local statsTitle = Instance.new("TextLabel")
+statsTitle.Size = UDim2.new(1, -10, 0, 22)
+statsTitle.Position = UDim2.new(0, 10, 0, 4)
+statsTitle.Text = "⚔️ BLADE BALL STATS"
+statsTitle.TextColor3 = Color3.fromRGB(200, 130, 255)
+statsTitle.BackgroundTransparency = 1
+statsTitle.TextSize = 13
+statsTitle.Font = Enum.Font.GothamBold
+statsTitle.TextXAlignment = Enum.TextXAlignment.Left
+statsTitle.Parent = statsContainer
+
+local currentSpeedLabel = Instance.new("TextLabel")
+currentSpeedLabel.Size = UDim2.new(0.5, -10, 0, 20)
+currentSpeedLabel.Position = UDim2.new(0, 10, 0, 30)
+currentSpeedLabel.Text = "⚡ Current Speed: 0"
+currentSpeedLabel.TextColor3 = Color3.fromRGB(220, 220, 240)
+currentSpeedLabel.BackgroundTransparency = 1
+currentSpeedLabel.TextSize = 12
+currentSpeedLabel.Font = Enum.Font.GothamMedium
+currentSpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+currentSpeedLabel.Parent = statsContainer
+
+local peakSpeedLabel = Instance.new("TextLabel")
+peakSpeedLabel.Size = UDim2.new(0.5, -10, 0, 20)
+peakSpeedLabel.Position = UDim2.new(0.5, 0, 0, 30)
+peakSpeedLabel.Text = "🔥 Peak Speed: 0"
+peakSpeedLabel.TextColor3 = Color3.fromRGB(255, 170, 0)
+peakSpeedLabel.BackgroundTransparency = 1
+peakSpeedLabel.TextSize = 12
+peakSpeedLabel.Font = Enum.Font.GothamBold
+peakSpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+peakSpeedLabel.Parent = statsContainer
+
+local targetLabel = Instance.new("TextLabel")
+targetLabel.Size = UDim2.new(1, -20, 0, 20)
+targetLabel.Position = UDim2.new(0, 10, 0, 52)
+targetLabel.Text = "🎯 Target: None"
+targetLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+targetLabel.BackgroundTransparency = 1
+targetLabel.TextSize = 12
+targetLabel.Font = Enum.Font.GothamMedium
+targetLabel.TextXAlignment = Enum.TextXAlignment.Left
+targetLabel.Parent = statsContainer
+
+local resetPeakBtn = Instance.new("TextButton")
+resetPeakBtn.Size = UDim2.new(0.95, 0, 0, 24)
+resetPeakBtn.Position = UDim2.new(0.025, 0, 0.74, 0)
+resetPeakBtn.Text = "🔄 איפוס Peak Speed"
+resetPeakBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetPeakBtn.BackgroundColor3 = Color3.fromRGB(40, 32, 55)
+resetPeakBtn.BorderSizePixel = 0
+resetPeakBtn.TextSize = 11
+resetPeakBtn.Font = Enum.Font.GothamMedium
+resetPeakBtn.Parent = statsContainer
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 4)
+btnCorner.Parent = resetPeakBtn
+
+----------------------------------------------------
+-- 7. מנגנון מעקב אחר הכדור
+----------------------------------------------------
+local peakSpeed = 0
+
+resetPeakBtn.MouseButton1Click:Connect(function()
+	peakSpeed = 0
+	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
+end)
+
+local function getBall()
+	local ballsFolder = Workspace:FindFirstChild("Balls")
+	if ballsFolder then
+		for _, v in pairs(ballsFolder:GetChildren()) do
+			if v:getAttribute("realBall") == true or v:FindFirstChild("zoomies") or v.Name == "Ball" then
+				return v
+			end
+		end
+	end
+	return Workspace:FindFirstChild("Ball")
+end
+
+RunService.RenderStepped:Connect(function()
+	local ball = getBall()
+	if ball and ball:IsA("BasePart") then
+		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
+		
+		if currentSpeed > peakSpeed then
+			peakSpeed = currentSpeed
+			peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
+		end
+		
+		currentSpeedLabel.Text = "⚡ Current Speed: " .. tostring(currentSpeed)
+		
+		local targetVal = ball:GetAttribute("target") or ball:GetAttribute("Target")
+		if targetVal then
+			targetLabel.Text = "🎯 Target: " .. tostring(targetVal)
+		else
+			targetLabel.Text = "🎯 Target: None"
+		end
+	else
+		currentSpeedLabel.Text = "⚡ Current Speed: 0"
+		targetLabel.Text = "🎯 Target: None"
+	end
+end)
+
 resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
 	korbloxActive = false
@@ -375,6 +474,8 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	headlessBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	setSpeed(16)
 	setJumpPower(50)
+	peakSpeed = 0
+	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
 player.CharacterAdded:Connect(function(char)
@@ -385,7 +486,7 @@ player.CharacterAdded:Connect(function(char)
 end)
 
 ----------------------------------------------------
--- 7. מסך פתיחה בסגול (Intro)
+-- 8. מסך פתיחה (Intro)
 ----------------------------------------------------
 task.spawn(function()
 	local introGui = Instance.new("ScreenGui")
@@ -449,7 +550,7 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "BUILDING HORIZONTAL HUB [75%]"
+	subLabel.Text = "LOADING BLADE BALL TRACKER [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
