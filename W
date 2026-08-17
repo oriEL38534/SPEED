@@ -14,7 +14,7 @@ if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 
 ----------------------------------------------------
--- 1. יצירת הממשק הראשי (מוסתר בהתחלה)
+-- 1. יצירת הממשק הראשי
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
@@ -35,7 +35,7 @@ frame.BorderSizePixel = 1
 frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 frame.Active = true
 frame.Draggable = true
-frame.Visible = false -- מוסתר עד סיום ההנפשה
+frame.Visible = false
 frame.Parent = screenGui
 
 local frameCorner = Instance.new("UICorner")
@@ -75,7 +75,7 @@ toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
 toggleBtn.Draggable = true
-toggleBtn.Visible = false -- מוסתר עד סיום ההנפשה
+toggleBtn.Visible = false
 toggleBtn.Parent = screenGui
 
 local toggleCorner = Instance.new("UICorner")
@@ -90,28 +90,49 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. פונקציות קוסמטיקה
+-- 2. פונקציות קוסמטיקה - מותאמות ממוקדות R6
 ----------------------------------------------------
 local function applyKorblox()
 	local char = player.Character
 	if not char then return end
-	
-	local rightLeg = char:FindFirstChild("Right Leg") or char:FindFirstChild("RightLowerLeg")
-	if rightLeg then
-		if char:FindFirstChild("Right Leg") then
-			rightLeg.MeshId = "rbxassetid://90294209"
-			rightLeg.TextureID = "rbxassetid://90284029"
-			rightLeg.Transparency = 0
-		else
-			local rightLower = char:FindFirstChild("RightLowerLeg")
-			local rightFoot = char:FindFirstChild("RightFoot")
-			if rightLower then
-				local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
-				mesh.MeshId = "rbxassetid://90294209"
-				mesh.TextureId = "rbxassetid://90284029"
-			end
-			if rightFoot then rightFoot.Transparency = 1 end
+
+	-- ניקוי CharacterMesh שרובלוקס שם על רגל ימין (R6)
+	for _, child in ipairs(char:GetChildren()) do
+		if child:IsA("CharacterMesh") and child.BodyPart == Enum.BodyPart.RightLeg then
+			child:Destroy()
 		end
+	end
+
+	-- התאמה עבור R6
+	local rightLeg = char:FindFirstChild("Right Leg")
+	if rightLeg then
+		rightLeg.Transparency = 0
+		local mesh = rightLeg:FindFirstChildOfClass("SpecialMesh")
+		if not mesh then
+			mesh = Instance.new("SpecialMesh")
+			mesh.Parent = rightLeg
+		end
+		mesh.MeshType = Enum.MeshType.FileMesh
+		mesh.MeshId = "rbxassetid://90294209"
+		mesh.TextureId = "rbxassetid://90284029"
+		mesh.Scale = Vector3.new(1, 1, 1)
+		return
+	end
+
+	-- תמיכה משנית למקרה שהמשחק מריץ R15
+	local rightUpper = char:FindFirstChild("RightUpperLeg")
+	local rightLower = char:FindFirstChild("RightLowerLeg")
+	local rightFoot = char:FindFirstChild("RightFoot")
+
+	if rightUpper then rightUpper.Transparency = 1 end
+	if rightFoot then rightFoot.Transparency = 1 end
+	if rightLower then
+		rightLower.Transparency = 0
+		local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
+		mesh.MeshType = Enum.MeshType.FileMesh
+		mesh.MeshId = "rbxassetid://90294209"
+		mesh.TextureId = "rbxassetid://90284029"
+		mesh.Scale = Vector3.new(1, 1, 1)
 	end
 end
 
@@ -124,6 +145,10 @@ local function applyHeadless()
 		head.Transparency = 1
 		local face = head:FindFirstChildOfClass("Decal")
 		if face then face.Transparency = 1 end
+		
+		-- העלמת Mesh של הראש במידה וקיים (R6 / R15)
+		local mesh = head:FindFirstChildOfClass("SpecialMesh")
+		if mesh then mesh.Scale = Vector3.new(0, 0, 0) end
 	end
 end
 
@@ -325,7 +350,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 4. מסך פתיחה מונהג ברקע נפרד (Task Spawn)
+-- 4. מסך פתיחה
 ----------------------------------------------------
 task.spawn(function()
 	local introGui = Instance.new("ScreenGui")
@@ -404,7 +429,6 @@ task.spawn(function()
 		end
 	end)
 
-	-- שלבי הטעינה
 	task.wait(0.5)
 	subLabel.Text = "LOADING UI MODULES [25%]"
 	TweenService:Create(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
@@ -426,7 +450,6 @@ task.spawn(function()
 	if rgbConnection then rgbConnection:Disconnect() end
 	introGui:Destroy()
 
-	-- הצגת התפריט באופן ודאי
 	frame.Visible = true
 	toggleBtn.Visible = true
 end)
