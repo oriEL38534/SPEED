@@ -32,6 +32,7 @@ local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
 local eSpamActive = false
+local autoParryActive = false
 
 -- ערכים נוכחיים להגדרות (עבור מערכת השמירה)
 local currentSavedSpeed = 30
@@ -424,7 +425,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM (עם הגנה)
+-- מנגנון E-SPAM
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -451,6 +452,26 @@ end
 
 eSpamBtn.MouseButton1Click:Connect(function()
 	setESpam(not eSpamActive)
+end)
+
+----------------------------------------------------
+-- 🛡️ מנגנון AUTO PARRY חדש
+----------------------------------------------------
+local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
+
+local function setAutoParry(state)
+	autoParryActive = state
+	if autoParryActive then
+		autoParryBtn.Text = "✅ Auto Parry: פעיל"
+		autoParryBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+	else
+		autoParryBtn.Text = "🛡️ Auto Parry: כבוי"
+		autoParryBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+autoParryBtn.MouseButton1Click:Connect(function()
+	setAutoParry(not autoParryActive)
 end)
 
 -- עמודה ימנית
@@ -577,7 +598,8 @@ local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
 		Korblox = korbloxActive,
 		Headless = headlessActive,
 		DarkLighting = darkLightingActive,
-		LightLighting = lightLightingActive
+		LightLighting = lightLightingActive,
+		AutoParry = autoParryActive
 	}
 	
 	local success, encoded = pcall(function()
@@ -610,6 +632,7 @@ local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
 			end
 			if decoded.Korblox ~= nil then setKorblox(decoded.Korblox) end
 			if decoded.Headless ~= nil then setHeadless(decoded.Headless) end
+			if decoded.AutoParry ~= nil then setAutoParry(decoded.AutoParry) end
 			
 			if decoded.DarkLighting then
 				darkLightingActive = false
@@ -633,7 +656,7 @@ resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 print("LOAD: Features fully assembled.")
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור בזמן אמת ו-Peak Speed
+-- 7. מעקב נתוני הכדור, Auto Parry ו-Peak Speed
 ----------------------------------------------------
 local peakSpeed = 0
 
@@ -655,18 +678,39 @@ local function getBall()
 end
 
 RunService.RenderStepped:Connect(function()
-	if ballStatsActive and statsFrame.Visible then
-		local ball = getBall()
-		if ball and ball:IsA("BasePart") then
-			local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
-			
+	local ball = getBall()
+	local char = player.Character
+	
+	if ball and ball:IsA("BasePart") then
+		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
+		
+		-- עדכון Peak Speed וסטטיסטיקות כדור
+		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
 				peakSpeed = currentSpeed
 				peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
 			end
-			
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
-		else
+		end
+		
+		-- לוגיקת Auto Parry אוטומטית
+		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
+			local hrp = char.HumanoidRootPart
+			local distance = (ball.Position - hrp.Position).Magnitude
+			
+			-- חישוב דינמי של טווח תגובה לפי מהירות הכדור
+			local dynamicThreshold = math.clamp(15 + (currentSpeed * 0.15), 15, 45)
+			
+			if distance <= dynamicThreshold then
+				pcall(function()
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+					task.wait(0.01)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				end)
+			end
+		end
+	else
+		if ballStatsActive and statsFrame.Visible then
 			currentSpeedLabel.Text = "⚡ Speed: 0"
 		end
 	end
@@ -678,6 +722,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setHeadless(false)
 	setBallStats(false)
 	setESpam(false)
+	setAutoParry(false)
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -703,7 +748,7 @@ player.CharacterAdded:Connect(function(char)
 	if headlessActive then applyHeadless() end
 end)
 
-print("LOAD: Ball tracking loaded.")
+print("LOAD: Ball tracking & Auto Parry loaded.")
 
 ----------------------------------------------------
 -- 8. מסך פתיחה (Intro)
@@ -784,4 +829,4 @@ task.spawn(function()
 	toggleBtn.Visible = true
 end)
 
-print("LOAD: Script successfully initialized without crashes!")
+print("LOAD: Script successfully initialized with Auto Parry!")
