@@ -129,7 +129,7 @@ local function removeHighlights()
 		createdLight = nil
 	end
 	for _, obj in ipairs(Workspace:GetDescendants()) do
-		if obj:IsA("Highlight") and (obj.Name == "BallSuperGlow" or obj.Name:find("_Glow")) then
+		if obj:IsA("Highlight") and (obj.Name == "BallSuperGlow" or obj.Name:find("_Glow") or obj.Name:find("_BlackAura")) then
 			obj:Destroy()
 		end
 		if obj:IsA("PointLight") and obj.Name == "BallLight" then
@@ -195,7 +195,7 @@ local function applyDarkHighlights()
 	end
 end
 
--- יצירת הילת אורה שחורה לכל השחקנים (מצב בהיר)
+-- יצירת הילה שחורה כהה ומודגשת לשחקנים ולכדור
 local function applyBlackAura()
 	removeHighlights()
 	
@@ -203,13 +203,27 @@ local function applyBlackAura()
 	highlightsFolder.Name = "BlackAuraHighlights"
 	highlightsFolder.Parent = Workspace
 
+	-- הילה שחורה קהה לכדור
+	local targetBall = findBall()
+	if targetBall then
+		local ballBlackHighlight = Instance.new("Highlight")
+		ballBlackHighlight.Name = "Ball_BlackAura"
+		ballBlackHighlight.FillColor = Color3.fromRGB(0, 0, 0)
+		ballBlackHighlight.FillTransparency = 0.05 -- שחור כמעט אטום
+		ballBlackHighlight.OutlineColor = Color3.fromRGB(0, 0, 0)
+		ballBlackHighlight.OutlineTransparency = 0
+		ballBlackHighlight.Parent = highlightsFolder
+		ballBlackHighlight.Adornee = targetBall
+	end
+
+	-- הילה שחורה כהה לכל השחקנים
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character then
 			local blackHighlight = Instance.new("Highlight")
 			blackHighlight.Name = plr.Name .. "_BlackAura"
-			blackHighlight.FillColor = Color3.fromRGB(0, 0, 0) -- מילוי שחור
-			blackHighlight.FillTransparency = 0.2 -- כהה ומודגש
-			blackHighlight.OutlineColor = Color3.fromRGB(20, 20, 20) -- הילה חיצונית שחורה
+			blackHighlight.FillColor = Color3.fromRGB(0, 0, 0)
+			blackHighlight.FillTransparency = 0.05 -- שחור כמעט אטום ומודגש מאוד
+			blackHighlight.OutlineColor = Color3.fromRGB(0, 0, 0)
 			blackHighlight.OutlineTransparency = 0
 			blackHighlight.Parent = highlightsFolder
 			blackHighlight.Adornee = plr.Character
@@ -225,7 +239,7 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 -- כפתור Infinite Jump
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
--- מנגנון קפיצה קשיח מבוסס ContextActionService
+-- מנגנון קפיצה מבוסס ContextActionService
 local ACTION_NAME = "InfJumpAction"
 
 local function handleJumpAction(actionName, inputState, inputObject)
@@ -277,7 +291,7 @@ createButton("🌒 כהה (עם כדור זרחני)", 215, function()
 	applyDarkHighlights()
 end)
 
-createButton("☀️ בהיר (אורה שחורה לשחקנים)", 260, function()
+createButton("☀️ בהיר (אורה שחורה כהה)", 260, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
