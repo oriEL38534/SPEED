@@ -20,6 +20,7 @@ if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
 local infJumpActive = false
 local korbloxActive = false
 local headlessActive = false
+local ballStatsActive = false
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
@@ -48,7 +49,7 @@ frameStroke.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -40, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
-title.Text = "⚡ SPEED & JUMP HUB"
+title.Text = "⚡ SPEED & BLADE HUB"
 title.TextColor3 = Color3.fromRGB(200, 130, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 17
@@ -100,14 +101,14 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.47, 0, 0.82, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.82, 0)
 leftCol.Position = UDim2.new(0.03, 0, 0.14, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.47, 0, 0.82, 0)
-rightCol.Position = UDim2.new(0.50, 0, 0.14, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.82, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.14, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
@@ -148,7 +149,7 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, posit
 	sliderBG.Text = ""
 	sliderBG.AutoButtonColor = false
 	sliderBG.Size = UDim2.new(1, 0, 0, 12)
-	sliderBG.Position = UDim2.new(0, 0, 0, positionY + 22)
+	sliderBG.Position = UDim2.new(0, 0, 0, positionY + 20)
 	sliderBG.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	sliderBG.BorderSizePixel = 0
 	sliderBG.Parent = parent
@@ -208,7 +209,7 @@ local function createButton(parent, text, positionY, onClick)
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	btn.BorderSizePixel = 0
-	btn.TextSize = 13
+	btn.TextSize = 12
 	btn.Font = Enum.Font.GothamMedium
 	btn.Parent = parent
 
@@ -226,7 +227,7 @@ local function createButton(parent, text, positionY, onClick)
 end
 
 ----------------------------------------------------
--- 5. חלונית נפרדת וניתנת להזזה ל-BALL STATS
+-- 5. חלונית BALL STATS הנפרדת (ניתנת להזזה)
 ----------------------------------------------------
 local ballStatsGui = Instance.new("ScreenGui")
 ballStatsGui.Name = "BallStatsGui"
@@ -234,12 +235,12 @@ ballStatsGui.ResetOnSpawn = false
 ballStatsGui.Parent = pGui
 
 local statsFrame = Instance.new("Frame")
-statsFrame.Size = UDim2.new(0, 220, 0, 110)
+statsFrame.Size = UDim2.new(0, 200, 0, 110)
 statsFrame.Position = UDim2.new(0.75, 0, 0.3, 0)
 statsFrame.BackgroundColor3 = Color3.fromRGB(18, 16, 25)
 statsFrame.BorderSizePixel = 0
 statsFrame.Active = true
-statsFrame.Draggable = true -- ניתן להזזה בחופשיות לצד
+statsFrame.Draggable = true
 statsFrame.Visible = false
 statsFrame.Parent = ballStatsGui
 
@@ -264,7 +265,7 @@ statsTitle.TextXAlignment = Enum.TextXAlignment.Left
 statsTitle.Parent = statsFrame
 
 local currentSpeedLabel = Instance.new("TextLabel")
-currentSpeedLabel.Size = UDim2.new(1, -20, 0, 22)
+currentSpeedLabel.Size = UDim2.new(1, -20, 0, 20)
 currentSpeedLabel.Position = UDim2.new(0, 10, 0, 28)
 currentSpeedLabel.Text = "⚡ Speed: 0"
 currentSpeedLabel.TextColor3 = Color3.fromRGB(240, 240, 255)
@@ -275,8 +276,8 @@ currentSpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 currentSpeedLabel.Parent = statsFrame
 
 local peakSpeedLabel = Instance.new("TextLabel")
-peakSpeedLabel.Size = UDim2.new(1, -20, 0, 22)
-peakSpeedLabel.Position = UDim2.new(0, 10, 0, 50)
+peakSpeedLabel.Size = UDim2.new(1, -20, 0, 20)
+peakSpeedLabel.Position = UDim2.new(0, 10, 0, 48)
 peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 peakSpeedLabel.TextColor3 = Color3.fromRGB(255, 170, 0)
 peakSpeedLabel.BackgroundTransparency = 1
@@ -286,8 +287,8 @@ peakSpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 peakSpeedLabel.Parent = statsFrame
 
 local resetPeakBtn = Instance.new("TextButton")
-resetPeakBtn.Size = UDim2.new(0.9, 0, 0, 20)
-resetPeakBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
+resetPeakBtn.Size = UDim2.new(0.9, 0, 0, 22)
+resetPeakBtn.Position = UDim2.new(0.05, 0, 0.72, 0)
 resetPeakBtn.Text = "🔄 איפוס Peak"
 resetPeakBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 resetPeakBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -301,12 +302,12 @@ btnCorner.CornerRadius = UDim.new(0, 4)
 btnCorner.Parent = resetPeakBtn
 
 ----------------------------------------------------
--- 6. הוספת אלמנטים - עמודה ימנית ושמאלית
+-- 6. כפתורים וסליידרים (עם רווחים מתוקנים)
 ----------------------------------------------------
-createSlider(leftCol, "⚡ מהירות (Speed)", 30, 200, 30, 10, function(val) setSpeed(val) end)
-createSlider(leftCol, "🦘 גובה קפיצה (Jump)", 30, 200, 50, 60, function(val) setJumpPower(val) end)
+createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 0, function(val) setSpeed(val) end)
+createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 45, function(val) setJumpPower(val) end)
 
-local infJumpBtn = createButton(leftCol, "♾️ Infinite Jump: כבוי", 115, function() end)
+local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 95, function() end)
 
 local ACTION_NAME = "InfJumpAction"
 
@@ -324,7 +325,7 @@ end
 local function disableInfJump()
 	infJumpActive = false
 	ContextActionService:UnbindAction(ACTION_NAME)
-	infJumpBtn.Text = "♾️ Infinite Jump: כבוי"
+	infJumpBtn.Text = "♾️ Inf Jump: כבוי"
 	infJumpBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 end
 
@@ -332,7 +333,7 @@ local function enableInfJump()
 	disableInfJump()
 	infJumpActive = true
 	ContextActionService:BindAction(ACTION_NAME, handleJumpAction, false, Enum.KeyCode.Space)
-	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
+	infJumpBtn.Text = "✅ Inf Jump: פעיל"
 	infJumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
 end
 
@@ -340,18 +341,17 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- מתג פשוט לפתיחת/סגירת חלונית ה-BALL STATS
-local ballStatsActive = false
-local ballStatsBtn = createButton(leftCol, "⚔️ Ball Stats Window: כבוי", 160, function() end)
+-- **מתג BALL STATS**
+local ballStatsBtn = createButton(leftCol, "⚔️ Ball Stats: כבוי", 135, function() end)
 
 ballStatsBtn.MouseButton1Click:Connect(function()
 	ballStatsActive = not ballStatsActive
 	if ballStatsActive then
-		ballStatsBtn.Text = "✅ Ball Stats Window: פעיל"
+		ballStatsBtn.Text = "✅ Ball Stats: פעיל"
 		ballStatsBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
 		statsFrame.Visible = true
 	else
-		ballStatsBtn.Text = "⚔️ Ball Stats Window: כבוי"
+		ballStatsBtn.Text = "⚔️ Ball Stats: כבוי"
 		ballStatsBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 		statsFrame.Visible = false
 	end
@@ -385,7 +385,7 @@ local function applyHeadless()
 	end)
 end
 
-local korbloxBtn = createButton(rightCol, "🦵 Korblox Leg: כבוי", 10, function() end)
+local korbloxBtn = createButton(rightCol, "🦵 Korblox Leg: כבוי", 0, function() end)
 korbloxBtn.MouseButton1Click:Connect(function()
 	korbloxActive = not korbloxActive
 	if korbloxActive then
@@ -398,7 +398,7 @@ korbloxBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local headlessBtn = createButton(rightCol, "💀 Headless: כבוי", 50, function() end)
+local headlessBtn = createButton(rightCol, "💀 Headless: כבוי", 40, function() end)
 headlessBtn.MouseButton1Click:Connect(function()
 	headlessActive = not headlessActive
 	if headlessActive then
@@ -411,23 +411,23 @@ headlessBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-createButton(rightCol, "🌒 מצב כהה", 90, function()
+createButton(rightCol, "🌒 מצב כהה", 80, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
 end)
 
-createButton(rightCol, "☀️ מצב בהיר", 130, function()
+createButton(rightCol, "☀️ מצב בהיר", 120, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 170, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 160, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(140, 30, 50)
 
 ----------------------------------------------------
--- 7. מנגנון מעקב נתונים בזמן אמת בחלונית
+-- 7. מנגנון מעקב נתוני הכדור
 ----------------------------------------------------
 local peakSpeed = 0
 
@@ -472,7 +472,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	headlessActive = false
 	ballStatsActive = false
 	statsFrame.Visible = false
-	ballStatsBtn.Text = "⚔️ Ball Stats Window: כבוי"
+	ballStatsBtn.Text = "⚔️ Ball Stats: כבוי"
 	ballStatsBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	korbloxBtn.Text = "🦵 Korblox Leg: כבוי"
 	korbloxBtn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
@@ -556,7 +556,7 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "BUILDING HORIZONTAL HUB [75%]"
+	subLabel.Text = "LOADING BALL STATS MODULE [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
