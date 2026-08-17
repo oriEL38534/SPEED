@@ -118,7 +118,7 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
--- ניקוי מוחלט של כל ההילות והאורות המותאמים אישית
+-- ניקוי מוחלט של הילות
 local function removeHighlights()
 	if highlightsFolder then
 		highlightsFolder:Destroy()
@@ -128,7 +128,6 @@ local function removeHighlights()
 		createdLight:Destroy()
 		createdLight = nil
 	end
-	-- ניקוי שאריות במידה וקיימות
 	for _, obj in ipairs(Workspace:GetDescendants()) do
 		if obj:IsA("Highlight") and (obj.Name == "BallSuperGlow" or obj.Name:find("_Glow")) then
 			obj:Destroy()
@@ -154,7 +153,7 @@ local function findBall()
 	return nil
 end
 
--- יצירת הילות ותאורת אש
+-- יצירת הילות
 local function applyHighlights()
 	removeHighlights()
 	
@@ -204,6 +203,43 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 -- כפתור Infinite Jump
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
+-- לוגיקת Infinite Jump מתוקנת וקשיחה
+local function disableInfJump()
+	infJumpActive = false
+	if infJumpConnection then
+		infJumpConnection:Disconnect()
+		infJumpConnection = nil
+	end
+	infJumpBtn.Text = "🦘 Infinite Jump: כבוי"
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+end
+
+local function enableInfJump()
+	disableInfJump()
+	infJumpActive = true
+	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+	
+	infJumpConnection = UserInputService.JumpRequest:Connect(function()
+		if not infJumpActive then return end
+		local char = player.Character
+		if char then
+			local hum = char:FindFirstChildOfClass("Humanoid")
+			if hum then
+				hum:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+		end
+	end)
+end
+
+infJumpBtn.MouseButton1Click:Connect(function()
+	if infJumpActive then 
+		disableInfJump() 
+	else 
+		enableInfJump() 
+	end
+end)
+
 -- שליטה בגרפיקת המשחק
 createButton("🌒 כהה (עם כדור זרחני)", 215, function()
 	Lighting.ClockTime = 20
@@ -225,11 +261,8 @@ createButton("☀️ גרפיקה בהירה (Bright)", 260, function()
 	Lighting.FogEnd = 100000
 end)
 
--- איפוס מלא לגרפיקה המקורית של המשחק
 createButton("🔄 החזר גרפיקה לרגיל", 305, function()
 	removeHighlights()
-	
-	-- ערכי ברירת המחדל התקניים של רובלוקס
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2
 	Lighting.GlobalShadows = true
@@ -242,41 +275,6 @@ end)
 local resetAllBtn = createButton("🛑 איפוס הכל (מהירות+קפיצה)", 355, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
--- לוגיקת Infinite Jump
-local function disableInfJump()
-	infJumpActive = false
-	if infJumpConnection then
-		infJumpConnection:Disconnect()
-		infJumpConnection = nil
-	end
-	infJumpBtn.Text = "🦘 Infinite Jump: כבוי"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-end
-
-local function enableInfJump()
-	disableInfJump()
-	infJumpActive = true
-	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
-	
-	infJumpConnection = UserInputService.JumpRequest:Connect(function()
-		if infJumpActive then
-			local char = player.Character
-			if char then
-				local hum = char:FindFirstChildOfClass("Humanoid")
-				if hum then
-					hum:ChangeState(Enum.HumanoidStateType.Jumping)
-				end
-			end
-		end
-	end)
-end
-
-infJumpBtn.MouseButton1Click:Connect(function()
-	if infJumpActive then disableInfJump() else enableInfJump() end
-end)
-
--- איפוס מלא
 resetAllBtn.MouseButton1Click:Connect(function()
 	removeHighlights()
 	disableInfJump()
