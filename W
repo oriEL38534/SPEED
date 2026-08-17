@@ -128,14 +128,14 @@ local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
 -- עצירה מוחלטת והריסת כל ה-Threads הקיים
 local function stopAllSpam()
 	spamActive = false
-	currentSessionID = currentSessionID + 1 -- שינוי ה-ID מנתק ומכבה ספונטנית כל לולאה רצה
+	currentSessionID = currentSessionID + 1
 	spamBtn.Text = "⚡ הפעל ספאם [R]"
 	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
--- הפעלת ספאם מוגנת ב-ID
+-- הפעלת ספאם עם השהיה בטוחה נגד BAC Kick
 local function startSpam()
-	stopAllSpam() -- ניקוי מוקדם של כל מה שרץ ברקע
+	stopAllSpam()
 	
 	spamActive = true
 	currentSessionID = currentSessionID + 1
@@ -148,10 +148,10 @@ local function startSpam()
 		while spamActive and currentSessionID == myID do
 			pcall(function()
 				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait(0.03)
+				task.wait(0.04)
 				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 			end)
-			task.wait(0.05)
+			task.wait(0.08) -- השהיה בטוחה יותר נגד זיהוי Anti-Cheat
 		end
 	end)
 end
@@ -167,10 +167,9 @@ end
 spamBtn.MouseButton1Click:Connect(toggleSpam)
 stopSpamBtn.MouseButton1Click:Connect(stopAllSpam)
 
--- זיהוי מקש R ללא תלות בעכבר או מגע מסך
+-- זיהוי מקש R
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
-	
 	if input.KeyCode == Enum.KeyCode.R then
 		toggleSpam()
 	end
