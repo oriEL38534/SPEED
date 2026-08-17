@@ -15,7 +15,7 @@ if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
 
 ----------------------------------------------------
--- 1. יצירת הממשק הראשי
+-- 1. יצירת הממשק הראשי (גודל מוגדל)
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
@@ -28,8 +28,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 460, 0, 360)
-frame.Position = UDim2.new(0.5, -230, 0.25, 0)
+frame.Size = UDim2.new(0, 480, 0, 380)
+frame.Position = UDim2.new(0.5, -240, 0.25, 0)
 frame.BackgroundColor3 = Color3.fromRGB(18, 16, 25)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -47,7 +47,7 @@ frameStroke.Thickness = 2
 frameStroke.Parent = frame
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -40, 0, 40)
+title.Size = UDim2.new(1, -50, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
 title.Text = "⚡ SPEED & BLADE HUB"
 title.TextColor3 = Color3.fromRGB(200, 130, 255)
@@ -98,19 +98,29 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. עמודות לוח הבקרה
+-- 2. עמודות לוח הבקרה עם UIListLayout
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.82, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.14, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.8, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.15, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
+local leftList = Instance.new("UIListLayout")
+leftList.Padding = UDim.new(0, 10)
+leftList.SortOrder = Enum.SortOrder.LayoutOrder
+leftList.Parent = leftCol
+
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.82, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.14, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.8, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.15, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
+
+local rightList = Instance.new("UIListLayout")
+rightList.Padding = UDim.new(0, 10)
+rightList.SortOrder = Enum.SortOrder.LayoutOrder
+rightList.Parent = rightCol
 
 ----------------------------------------------------
 -- 3. פונקציות תנועה
@@ -133,26 +143,32 @@ end
 ----------------------------------------------------
 -- 4. בנאי Sliders & Buttons
 ----------------------------------------------------
-local function createSlider(parent, titleText, minVal, maxVal, defaultVal, positionY, onValueChange)
+local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layoutOrder, onValueChange)
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(1, 0, 0, 42)
+	container.BackgroundTransparency = 1
+	container.LayoutOrder = layoutOrder
+	container.Parent = parent
+
 	local sliderLabel = Instance.new("TextLabel")
 	sliderLabel.Size = UDim2.new(1, 0, 0, 18)
-	sliderLabel.Position = UDim2.new(0, 0, 0, positionY)
+	sliderLabel.Position = UDim2.new(0, 0, 0, 0)
 	sliderLabel.Text = titleText .. ": " .. tostring(defaultVal)
 	sliderLabel.TextColor3 = Color3.fromRGB(240, 240, 255)
 	sliderLabel.BackgroundTransparency = 1
 	sliderLabel.TextSize = 13
 	sliderLabel.Font = Enum.Font.GothamMedium
 	sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-	sliderLabel.Parent = parent
+	sliderLabel.Parent = container
 
 	local sliderBG = Instance.new("TextButton")
 	sliderBG.Text = ""
 	sliderBG.AutoButtonColor = false
 	sliderBG.Size = UDim2.new(1, 0, 0, 12)
-	sliderBG.Position = UDim2.new(0, 0, 0, positionY + 20)
+	sliderBG.Position = UDim2.new(0, 0, 0, 22)
 	sliderBG.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	sliderBG.BorderSizePixel = 0
-	sliderBG.Parent = parent
+	sliderBG.Parent = container
 
 	local bgCorner = Instance.new("UICorner")
 	bgCorner.CornerRadius = UDim.new(1, 0)
@@ -201,16 +217,16 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, posit
 	end)
 end
 
-local function createButton(parent, text, positionY, onClick)
+local function createButton(parent, text, layoutOrder, onClick)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 32)
-	btn.Position = UDim2.new(0, 0, 0, positionY)
+	btn.Size = UDim2.new(1, 0, 0, 34)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundColor3 = Color3.fromRGB(32, 26, 45)
 	btn.BorderSizePixel = 0
 	btn.TextSize = 12
 	btn.Font = Enum.Font.GothamMedium
+	btn.LayoutOrder = layoutOrder
 	btn.Parent = parent
 
 	local btnCorner = Instance.new("UICorner")
@@ -235,7 +251,7 @@ ballStatsGui.ResetOnSpawn = false
 ballStatsGui.Parent = pGui
 
 local statsFrame = Instance.new("Frame")
-statsFrame.Size = UDim2.new(0, 200, 0, 110)
+statsFrame.Size = UDim2.new(0, 210, 0, 115)
 statsFrame.Position = UDim2.new(0.75, 0, 0.3, 0)
 statsFrame.BackgroundColor3 = Color3.fromRGB(18, 16, 25)
 statsFrame.BorderSizePixel = 0
@@ -255,7 +271,7 @@ statsStroke.Parent = statsFrame
 
 local statsTitle = Instance.new("TextLabel")
 statsTitle.Size = UDim2.new(1, -10, 0, 25)
-statsTitle.Position = UDim2.new(0, 10, 0, 2)
+statsTitle.Position = UDim2.new(0, 10, 0, 4)
 statsTitle.Text = "⚔️ BALL STATS"
 statsTitle.TextColor3 = Color3.fromRGB(200, 130, 255)
 statsTitle.BackgroundTransparency = 1
@@ -266,7 +282,7 @@ statsTitle.Parent = statsFrame
 
 local currentSpeedLabel = Instance.new("TextLabel")
 currentSpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-currentSpeedLabel.Position = UDim2.new(0, 10, 0, 28)
+currentSpeedLabel.Position = UDim2.new(0, 10, 0, 30)
 currentSpeedLabel.Text = "⚡ Speed: 0"
 currentSpeedLabel.TextColor3 = Color3.fromRGB(240, 240, 255)
 currentSpeedLabel.BackgroundTransparency = 1
@@ -277,7 +293,7 @@ currentSpeedLabel.Parent = statsFrame
 
 local peakSpeedLabel = Instance.new("TextLabel")
 peakSpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-peakSpeedLabel.Position = UDim2.new(0, 10, 0, 48)
+peakSpeedLabel.Position = UDim2.new(0, 10, 0, 52)
 peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 peakSpeedLabel.TextColor3 = Color3.fromRGB(255, 170, 0)
 peakSpeedLabel.BackgroundTransparency = 1
@@ -288,7 +304,7 @@ peakSpeedLabel.Parent = statsFrame
 
 local resetPeakBtn = Instance.new("TextButton")
 resetPeakBtn.Size = UDim2.new(0.9, 0, 0, 22)
-resetPeakBtn.Position = UDim2.new(0.05, 0, 0.72, 0)
+resetPeakBtn.Position = UDim2.new(0.05, 0, 0.74, 0)
 resetPeakBtn.Text = "🔄 איפוס Peak"
 resetPeakBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 resetPeakBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -302,12 +318,13 @@ btnCorner.CornerRadius = UDim.new(0, 4)
 btnCorner.Parent = resetPeakBtn
 
 ----------------------------------------------------
--- 6. כפתורים וסליידרים (עם רווחים מתוקנים)
+-- 6. הוספת רכיבים לפי סדר לעמודות
 ----------------------------------------------------
-createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 0, function(val) setSpeed(val) end)
-createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 45, function(val) setJumpPower(val) end)
+-- עמודה שמאלית
+createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 1, function(val) setSpeed(val) end)
+createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 2, function(val) setJumpPower(val) end)
 
-local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 95, function() end)
+local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 3, function() end)
 
 local ACTION_NAME = "InfJumpAction"
 
@@ -342,7 +359,7 @@ infJumpBtn.MouseButton1Click:Connect(function()
 end)
 
 -- **מתג BALL STATS**
-local ballStatsBtn = createButton(leftCol, "⚔️ Ball Stats: כבוי", 135, function() end)
+local ballStatsBtn = createButton(leftCol, "⚔️ Ball Stats: כבוי", 4, function() end)
 
 ballStatsBtn.MouseButton1Click:Connect(function()
 	ballStatsActive = not ballStatsActive
@@ -357,6 +374,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+-- עמודה ימנית
 local function applyKorblox()
 	pcall(function()
 		local char = player.Character
@@ -385,7 +403,7 @@ local function applyHeadless()
 	end)
 end
 
-local korbloxBtn = createButton(rightCol, "🦵 Korblox Leg: כבוי", 0, function() end)
+local korbloxBtn = createButton(rightCol, "🦵 Korblox Leg: כבוי", 1, function() end)
 korbloxBtn.MouseButton1Click:Connect(function()
 	korbloxActive = not korbloxActive
 	if korbloxActive then
@@ -398,7 +416,7 @@ korbloxBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local headlessBtn = createButton(rightCol, "💀 Headless: כבוי", 40, function() end)
+local headlessBtn = createButton(rightCol, "💀 Headless: כבוי", 2, function() end)
 headlessBtn.MouseButton1Click:Connect(function()
 	headlessActive = not headlessActive
 	if headlessActive then
@@ -411,19 +429,19 @@ headlessBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-createButton(rightCol, "🌒 מצב כהה", 80, function()
+createButton(rightCol, "🌒 מצב כהה", 3, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
 end)
 
-createButton(rightCol, "☀️ מצב בהיר", 120, function()
+createButton(rightCol, "☀️ מצב בהיר", 4, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 160, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(140, 30, 50)
 
 ----------------------------------------------------
