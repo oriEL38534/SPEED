@@ -16,8 +16,6 @@ if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
 
-print("LOAD: Cleaned up old GUI elements.")
-
 ----------------------------------------------------
 -- 1. שמירת הגדרות התאורה המקוריות של המשחק
 ----------------------------------------------------
@@ -417,7 +415,6 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM (מתוקן עם הפסקה מוחלטת של שליחת המקשים)
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -439,7 +436,6 @@ local function setESpam(state)
 	else
 		eSpamBtn.Text = "⚡ E-Spam: כבוי"
 		eSpamBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-		-- וידוא ניתוק מוחלט של המקש למניעת היתקעות
 		pcall(function()
 			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
 		end)
@@ -450,9 +446,6 @@ eSpamBtn.MouseButton1Click:Connect(function()
 	setESpam(not eSpamActive)
 end)
 
-----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY (מופרד לחלוטין ונקי)
-----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
 local function setAutoParry(state)
@@ -473,7 +466,6 @@ autoParryBtn.MouseButton1Click:Connect(function()
 	setAutoParry(not autoParryActive)
 end)
 
--- עמודה ימנית
 local function applyKorblox()
 	pcall(function()
 		local char = player.Character
@@ -562,9 +554,6 @@ local function setInvisible(state)
 end
 invisibleBtn.MouseButton1Click:Connect(function() setInvisible(not invisibleActive) end)
 
-----------------------------------------------------
--- ניהול תאורה חכם
-----------------------------------------------------
 local darkBtn, lightBtn
 
 local function restoreDefaultLighting()
@@ -615,9 +604,6 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 5, functio
 	end
 end)
 
-----------------------------------------------------
--- 💾 מערכת שמירה, טעינה ו-Auto Load
-----------------------------------------------------
 local fileName = "SpeedHub_Profile.json"
 
 local function loadProfileData()
@@ -704,9 +690,6 @@ end)
 local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 9, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
-----------------------------------------------------
--- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry
-----------------------------------------------------
 local peakSpeed = 0
 local lastParryTick = 0
 
@@ -748,14 +731,22 @@ RunService.RenderStepped:Connect(function()
 			local dynamicThreshold = math.clamp(40 + (currentSpeed * 0.22), 45, 150)
 			
 			if distance <= dynamicThreshold then
-				local currentTime = tick()
-				if currentTime - lastParryTick > 0.35 then
-					lastParryTick = currentTime
-					pcall(function()
-						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-						task.wait(0.01)
-						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-					end)
+				-- בדיקה האם הכדור באמת מגיע לכיוון שלך (Dot Product)
+				local directionToPlayer = (rootPart.Position - ball.Position).Unit
+				local ballVelocityDir = ball.AssemblyLinearVelocity.Unit
+				local dotProduct = ballVelocityDir:Dot(directionToPlayer)
+				
+				-- אם הכדור נע לכיוון שלך (dotProduct > 0.1)
+				if dotProduct > 0.1 then
+					local currentTime = tick()
+					if currentTime - lastParryTick > 0.35 then
+						lastParryTick = currentTime
+						pcall(function()
+							VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+							task.wait(0.01)
+							VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+						end)
+					end
 				end
 			end
 		end
@@ -793,9 +784,6 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
-----------------------------------------------------
--- 🛡️ פונקציית שמירה אולטימטיבית שמופעלת בכל יצירת דמות / מוות
-----------------------------------------------------
 local function setupCharacter(char)
 	local hum = char:WaitForChild("Humanoid", 10)
 	if not hum then return end
@@ -820,9 +808,6 @@ local function setupCharacter(char)
 			end
 		end
 	end)
-
-	hum.Died:Connect(function()
-	end)
 end
 
 if player.Character then
@@ -831,9 +816,6 @@ end
 
 player.CharacterAdded:Connect(setupCharacter)
 
-----------------------------------------------------
--- 8. מסך פתיחה (Intro)
-----------------------------------------------------
 task.spawn(function()
 	local introGui = Instance.new("ScreenGui")
 	introGui.Name = "ScriptIntroGui"
