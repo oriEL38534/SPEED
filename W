@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 
 local pGui = player:WaitForChild("PlayerGui")
@@ -14,6 +15,8 @@ local pGui = player:WaitForChild("PlayerGui")
 if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
+
+print("LOAD: Cleaned up old GUI elements.")
 
 ----------------------------------------------------
 -- 1. שמירת הגדרות התאורה המקוריות של המשחק
@@ -30,13 +33,18 @@ local darkLightingActive = false
 local lightLightingActive = false
 local eSpamActive = false
 
+-- ערכים נוכחיים להגדרות (עבור מערכת השמירה)
+local currentSavedSpeed = 30
+local currentSavedJump = 50
+local currentSavedFOV = 70
+
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 490) -- גובה מוגדל כדי להציג את כל האלמנטים
+frame.Size = UDim2.new(0, 480, 0, 540) -- הגדלנו מעט את הגובה כדי להכיל את כפתורי השמירה
 frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
@@ -105,11 +113,13 @@ end
 closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
+print("LOAD: Main GUI and variables initialized.")
+
 ----------------------------------------------------
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.85, 0)
 leftCol.Position = UDim2.new(0.03, 0, 0.1, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
@@ -120,7 +130,7 @@ leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.85, 0)
 rightCol.Position = UDim2.new(0.51, 0, 0.1, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
@@ -130,16 +140,20 @@ rightList.Padding = UDim.new(0, 6)
 rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
+print("LOAD: Columns created.")
+
 ----------------------------------------------------
 -- 3. פונקציות תנועה ומצלמה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
+	currentSavedSpeed = newSpeed
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then hum.WalkSpeed = newSpeed end
 end
 
 local function setJumpPower(newPower)
+	currentSavedJump = newPower
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then
@@ -149,11 +163,14 @@ local function setJumpPower(newPower)
 end
 
 local function setFOV(newFOV)
+	currentSavedFOV = newFOV
 	local cam = Workspace.CurrentCamera
 	if cam then
 		cam.FieldOfView = newFOV
 	end
 end
+
+print("LOAD: Movement functions ready.")
 
 ----------------------------------------------------
 -- 4. בנאי Sliders & Buttons
@@ -264,6 +281,8 @@ local function createButton(parent, text, layoutOrder, onClick)
 	return btn
 end
 
+print("LOAD: UI Builders (Sliders & Buttons) loaded.")
+
 ----------------------------------------------------
 -- 5. חלונית BALL STATS
 ----------------------------------------------------
@@ -338,6 +357,8 @@ resetPeakBtn.Parent = statsFrame
 local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 4)
 btnCorner.Parent = resetPeakBtn
+
+print("LOAD: Ball Stats GUI configured.")
 
 ----------------------------------------------------
 -- 6. הרכבת האלמנטים בעמודות
@@ -540,8 +561,74 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 	end
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
+----------------------------------------------------
+-- 💾 מערכת שמירה וטעינה (Save & Load Profile)
+----------------------------------------------------
+local fileName = "SpeedHub_Profile.json"
+
+local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
+	local profileData = {
+		Speed = currentSavedSpeed,
+		Jump = currentSavedJump,
+		FOV = currentSavedFOV,
+		InfJump = infJumpActive,
+		Korblox = korbloxActive,
+		Headless = headlessActive,
+		DarkLighting = darkLightingActive,
+		LightLighting = lightLightingActive
+	}
+	
+	local success, encoded = pcall(function()
+		return HttpService:JSONEncode(profileData)
+	end)
+	
+	if success and writefile then
+		pcall(function()
+			writefile(fileName, encoded)
+		end)
+		print("LOAD: Profile successfully saved!")
+	end
+end)
+saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
+
+local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
+	if readfile and isfile and isfile(fileName) then
+		local success, decoded = pcall(function()
+			local content = readfile(fileName)
+			return HttpService:JSONDecode(content)
+		end)
+		
+		if success and decoded then
+			if decoded.Speed then speedUpdateFunc(decoded.Speed) end
+			if decoded.Jump then jumpUpdateFunc(decoded.Jump) end
+			if decoded.FOV then fovUpdateFunc(decoded.FOV) end
+			
+			if decoded.InfJump ~= nil then
+				if decoded.InfJump then enableInfJump() else disableInfJump() end
+			end
+			if decoded.Korblox ~= nil then setKorblox(decoded.Korblox) end
+			if decoded.Headless ~= nil then setHeadless(decoded.Headless) end
+			
+			if decoded.DarkLighting then
+				darkLightingActive = false
+				darkBtn.MouseButton1Click:Fire()
+			elseif decoded.LightLighting then
+				lightLightingActive = false
+				lightBtn.MouseButton1Click:Fire()
+			end
+			
+			print("LOAD: Profile successfully loaded!")
+		end
+	else
+		print("LOAD: No saved profile found.")
+	end
+end)
+loadProfileBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 140)
+
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
+
+print("LOAD: Left and right column features fully assembled.")
 
 ----------------------------------------------------
 -- 7. מעקב נתוני הכדור
@@ -613,6 +700,8 @@ player.CharacterAdded:Connect(function(char)
 	if korbloxActive then applyKorblox() end
 	if headlessActive then applyHeadless() end
 end)
+
+print("LOAD: Ball tracking and event handlers loaded.")
 
 ----------------------------------------------------
 -- 8. מסך פתיחה (Intro)
@@ -692,3 +781,5 @@ task.spawn(function()
 	frame.Visible = true
 	toggleBtn.Visible = true
 end)
+
+print("LOAD: Script successfully fully loaded and executed!")
