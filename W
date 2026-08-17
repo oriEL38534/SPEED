@@ -455,7 +455,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY חדש
+-- 🛡️ מנגנון AUTO PARRY בטוח (לוחץ רק פעמיים בדיוק לפי מרחק)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -656,9 +656,10 @@ resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 print("LOAD: Features fully assembled.")
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור, Auto Parry ו-Peak Speed
+-- 7. מעקב נתוני הכדור, Auto Parry ובקרת לחיצות
 ----------------------------------------------------
 local peakSpeed = 0
+local hasParried = false
 
 resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeed = 0
@@ -693,20 +694,32 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
 		
-		-- לוגיקת Auto Parry אוטומטית
+		-- לוגיקת Auto Parry מאובטחת (לחיצה מבוקרת פעמיים בלבד)
 		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
 			local hrp = char.HumanoidRootPart
 			local distance = (ball.Position - hrp.Position).Magnitude
-			
-			-- חישוב דינמי של טווח תגובה לפי מהירות הכדור
-			local dynamicThreshold = math.clamp(15 + (currentSpeed * 0.15), 15, 45)
+			local dynamicThreshold = math.clamp(14 + (currentSpeed * 0.12), 14, 35)
 			
 			if distance <= dynamicThreshold then
-				pcall(function()
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-					task.wait(0.01)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-				end)
+				if not hasParried then
+					hasParried = true
+					pcall(function()
+						-- לחיצה מבוקרת ראשונה
+						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+						task.wait(0.03)
+						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+						task.wait(0.05)
+						-- לחיצה מבוקרת שנייה להבטחת המכה
+						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+						task.wait(0.03)
+						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+					end)
+				end
+			else
+				-- איפוס ברגע שהכדור מתרחק כדי שיהיה מוכן לפעימה הבאה
+				if distance > (dynamicThreshold + 10) then
+					hasParried = false
+				end
 			end
 		end
 	else
@@ -723,6 +736,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setBallStats(false)
 	setESpam(false)
 	setAutoParry(false)
+	hasParried = false
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -744,11 +758,12 @@ end)
 player.CharacterAdded:Connect(function(char)
 	char:WaitForChild("Humanoid")
 	task.wait(0.5)
+	hasParried = false
 	if korbloxActive then applyKorblox() end
 	if headlessActive then applyHeadless() end
 end)
 
-print("LOAD: Ball tracking & Auto Parry loaded.")
+print("LOAD: Ball tracking & Safe Auto Parry loaded.")
 
 ----------------------------------------------------
 -- 8. מסך פתיחה (Intro)
@@ -787,6 +802,7 @@ task.spawn(function()
 	introLabel.Font = Enum.Font.GothamBold
 	introLabel.Parent = introFrame
 
+---
 	local subLabel = Instance.new("TextLabel")
 	subLabel.Size = UDim2.new(1, 0, 0.2, 0)
 	subLabel.Position = UDim2.new(0, 0, 0.45, 0)
@@ -829,4 +845,4 @@ task.spawn(function()
 	toggleBtn.Visible = true
 end)
 
-print("LOAD: Script successfully initialized with Auto Parry!")
+print("LOAD: Script successfully initialized with Safe Auto Parry!")
