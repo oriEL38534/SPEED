@@ -142,7 +142,7 @@ rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
 ----------------------------------------------------
--- 3. פונקציות תנועה ומצלמה (מוגנות ועקביות גם אחרי ראונד)
+-- 3. פונקציות תנועה ומצלמה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
 	currentSavedSpeed = math.clamp(newSpeed, 16, 100)
@@ -730,7 +730,7 @@ RunService.RenderStepped:Connect(function()
 		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
 				peakSpeed = currentSpeed
-				peakSpeedLabel.Text = "🔥 Peak Speed: " + tostring(peakSpeed) -- נתקן ל-..
+				peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
 			end
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
@@ -786,15 +786,19 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
--- 🛡️ שמירה על מהירות וקפיצה גם אחרי כל ראונד או מות (Respawn)
+-- 🛡️ שמירה חזקה וקבועה של מהירות וקפיצה גם אחרי מוות וריספון
 player.CharacterAdded:Connect(function(char)
-	local hum = char:WaitForChild("Humanoid", 5)
-	task.wait(0.3) -- המתנה קצרה לוודא שהדמות נטענה במלואה
+	local hum = char:WaitForChild("Humanoid", 10)
 	
-	if hum then
-		hum.WalkSpeed = currentSavedSpeed
-		hum.UseJumpPower = true
-		hum.JumpPower = currentSavedJump
+	-- נעשה כמה בדיקות רצופות כדי שהמשחק לא ידרוס את זה בחזרה לברירת המחדל
+	for i = 1, 5 do
+		task.wait(0.2)
+		local currentHum = char:FindFirstChildOfClass("Humanoid")
+		if currentHum then
+			currentHum.WalkSpeed = currentSavedSpeed
+			currentHum.UseJumpPower = true
+			currentHum.JumpPower = currentSavedJump
+		end
 	end
 	
 	if korbloxActive then applyKorblox() end
