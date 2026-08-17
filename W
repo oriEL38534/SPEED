@@ -3,9 +3,9 @@ local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
--- משתנים לניהול מצבים
-local spamEnabled = false
-local spamThread = nil
+-- מנגנון נעילה קשיח למניעת כפילות בלולאות
+local spamActive = false
+local currentSessionID = 0
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -38,7 +38,7 @@ frameCorner.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "הסקריפט שלי (Mobile/KB)"
+title.Text = "הסקריפט שלי"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 16
@@ -125,55 +125,53 @@ createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
 local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
 
--- עצירה מוחלטת
-local function stopSpam()
-	spamEnabled = false
-	if spamThread then
-		task.cancel(spamThread)
-		spamThread = nil
-	end
+-- עצירה מוחלטת והריסת כל ה-Threads הקיים
+local function stopAllSpam()
+	spamActive = false
+	currentSessionID = currentSessionID + 1 -- שינוי ה-ID מנתק ומכבה ספונטנית כל לולאה רצה
 	spamBtn.Text = "⚡ הפעל ספאם [R]"
 	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
--- הפעלה בטוחה שתואמת גם למובייל
+-- הפעלת ספאם מוגנת ב-ID
 local function startSpam()
-	if not spamEnabled then
-		spamEnabled = true
-		spamBtn.Text = "✅ ספאם E פעיל [R]"
-		spamBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
-		
-		spamThread = task.spawn(function()
-			while spamEnabled do
-				-- שליחת בלוק שמתאים גם לנייד
-				pcall(function()
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-					task.wait(0.03)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-				end)
-				task.wait(0.05)
-			end
-		end)
-	end
+	stopAllSpam() -- ניקוי מוקדם של כל מה שרץ ברקע
+	
+	spamActive = true
+	currentSessionID = currentSessionID + 1
+	local myID = currentSessionID
+	
+	spamBtn.Text = "✅ ספאם E פעיל [R]"
+	spamBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+	
+	task.spawn(function()
+		while spamActive and currentSessionID == myID do
+			pcall(function()
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+				task.wait(0.03)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+			end)
+			task.wait(0.05)
+		end
+	end)
 end
 
-local function toggleSpamState()
-	if spamEnabled then
-		stopSpam()
+local function toggleSpam()
+	if spamActive then
+		stopAllSpam()
 	else
 		startSpam()
 	end
 end
 
-spamBtn.MouseButton1Click:Connect(toggleSpamState)
-stopSpamBtn.MouseButton1Click:Connect(stopSpam)
+spamBtn.MouseButton1Click:Connect(toggleSpam)
+stopSpamBtn.MouseButton1Click:Connect(stopAllSpam)
 
--- זיהוי מקלדת חיצונית בטלפון (מטפל גם ב-Keycode וגם ב-RawInput)
+-- זיהוי מקש R ללא תלות בעכבר או מגע מסך
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	
-	-- בדיקת לחיצה על מקש R (מקלדת או מקלדת חיצונית בטלפון)
-	if input.KeyCode == Enum.KeyCode.R or input.KeyCode == Enum.KeyCode.Unknown and input.UserInputType == Enum.UserInputType.Keyboard then
-		toggleSpamState()
+	if input.KeyCode == Enum.KeyCode.R then
+		toggleSpam()
 	end
 end)
