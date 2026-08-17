@@ -3,25 +3,28 @@ local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- מנגנון נעילה קשיח
+-- משתנים לניהול מצבים
 local spamActive = false
+local infJumpActive = false
 local currentSessionID = 0
+local infJumpConnection = nil
 
--- ניקוי ממשק ישן
+-- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
 if pGui:FindFirstChild("SpeedMenuGui") then
 	pGui.SpeedMenuGui:Destroy()
 end
 
--- יצירת המסך והממשק
+-- יצירת הממשק הוויזואלי (ScreenGui)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
+-- יצירת המסגרת הראשית (ממשק כהה)
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 320)
-frame.Position = UDim2.new(0.05, 0, 0.3, 0)
+frame.Size = UDim2.new(0, 220, 0, 400)
+frame.Position = UDim2.new(0.05, 0, 0.25, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 1
 frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -33,10 +36,11 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
 
+-- כותרת
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "הסקריפט שלי (Bypass)"
+title.Text = "הסקריפט שלי"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 16
@@ -44,6 +48,7 @@ title.Font = Enum.Font.SourceSansBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
+-- כפתור סגירה (X)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 40)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -54,6 +59,7 @@ closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = frame
 
+-- כפתור צף להצגה/הסתרה
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 85, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
@@ -79,6 +85,7 @@ end
 closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
+-- פונקציה לעדכון מהירות
 local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -87,6 +94,7 @@ local function setSpeed(newSpeed)
 	end
 end
 
+-- פונקציית עזר ליצירת כפתורים
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.86, 0, 0, 32)
@@ -109,25 +117,32 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
-createButton("מהירות 30", 50, function() setSpeed(30) end)
-createButton("מהירות 100", 90, function() setSpeed(100) end)
-createButton("מהירות 200", 130, function() setSpeed(200) end)
-createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
+-- כפתורי מהירות
+createButton("מהירות 30", 45, function() setSpeed(30) end)
+createButton("מהירות 100", 85, function() setSpeed(100) end)
+createButton("מהירות 200", 125, function() setSpeed(200) end)
+createButton("איפוס מהירות (16)", 165, function() setSpeed(16) end)
 
-local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
-local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
+-- כפתורי ספאם
+local spamBtn = createButton("⚡ הפעל ספאם [R]", 205, function() end)
 
-local function stopAllSpam()
+-- כפתור Infinite Jump
+local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 245, function() end)
+
+-- כפתור עצירה מוחלטת
+local stopAllBtn = createButton("🛑 עצור הכל לחלוטין", 290, function() end)
+stopAllBtn.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
+
+-- פונקציות עצירה והפעלה לספאם
+local function stopSpam()
 	spamActive = false
 	currentSessionID = currentSessionID + 1
 	spamBtn.Text = "⚡ הפעל ספאם [R]"
 	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
--- סליקת Parry בטוחה ישירות מול הרשת של המשחק
 local function startSpam()
-	stopAllSpam()
-	
+	stopSpam()
 	spamActive = true
 	currentSessionID = currentSessionID + 1
 	local myID = currentSessionID
@@ -138,7 +153,6 @@ local function startSpam()
 	task.spawn(function()
 		while spamActive and currentSessionID == myID do
 			pcall(function()
-				-- ניסיון הפעלה דרך ה-Remote של המשחק (עוקף VirtualInputManager)
 				local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Packages")
 				if remotes then
 					local parryRemote = remotes:FindFirstChild("ParryButtonPress") or remotes:FindFirstChild("Parry")
@@ -153,16 +167,55 @@ local function startSpam()
 end
 
 local function toggleSpam()
-	if spamActive then
-		stopAllSpam()
-	else
-		startSpam()
-	end
+	if spamActive then stopSpam() else startSpam() end
 end
 
 spamBtn.MouseButton1Click:Connect(toggleSpam)
-stopSpamBtn.MouseButton1Click:Connect(stopAllSpam)
 
+-- לוגיקה עבור Infinite Jump
+local function disableInfJump()
+	infJumpActive = false
+	if infJumpConnection then
+		infJumpConnection:Disconnect()
+		infJumpConnection = nil
+	end
+	infJumpBtn.Text = "🦘 Infinite Jump: כבוי"
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+end
+
+local function enableInfJump()
+	disableInfJump()
+	infJumpActive = true
+	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+	
+	infJumpConnection = UserInputService.JumpRequest:Connect(function()
+		if infJumpActive then
+			local char = player.Character
+			if char then
+				local hum = char:FindFirstChildOfClass("Humanoid")
+				if hum then
+					hum:ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+			end
+		end
+	end)
+end
+
+infJumpBtn.MouseButton1Click:Connect(function()
+	if infJumpActive then disableInfJump() else enableInfJump() end
+end)
+
+-- פונקציה לעצירה מוחלטת של כל פעילות הסקריפט
+local function killAllScriptFunctions()
+	stopSpam()
+	disableInfJump()
+	setSpeed(16)
+end
+
+stopAllBtn.MouseButton1Click:Connect(killAllScriptFunctions)
+
+-- מקש R להפעלת/כיבוי ספאם
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == Enum.KeyCode.R then
