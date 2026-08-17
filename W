@@ -15,14 +15,19 @@ if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
 
 ----------------------------------------------------
--- 1. משתנים גלובליים
+-- 1. שמירת הגדרות התאורה המקוריות של המשחק
 ----------------------------------------------------
+local defaultClockTime = Lighting.ClockTime
+local defaultBrightness = Lighting.Brightness
+local defaultGlobalShadows = Lighting.GlobalShadows
+
 local infJumpActive = false
 local korbloxActive = false
 local headlessActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
+local defaultLightingActive = true -- פעיל כברירת מחדל בהתחלה
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
@@ -30,8 +35,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 380)
-frame.Position = UDim2.new(0.5, -240, 0.25, 0)
+frame.Size = UDim2.new(0, 480, 0, 410) -- הוגדל מעט כדי להכיל את הכפתור הנוסף
+frame.Position = UDim2.new(0.5, -240, 0.22, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -103,24 +108,24 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.8, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.15, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.85, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.13, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
 local leftList = Instance.new("UIListLayout")
-leftList.Padding = UDim.new(0, 10)
+leftList.Padding = UDim.new(0, 8)
 leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.8, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.15, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.85, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.13, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
 local rightList = Instance.new("UIListLayout")
-rightList.Padding = UDim.new(0, 10)
+rightList.Padding = UDim.new(0, 8)
 rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
@@ -233,7 +238,7 @@ end
 
 local function createButton(parent, text, layoutOrder, onClick)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 34)
+	btn.Size = UDim2.new(1, 0, 0, 32)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -442,47 +447,71 @@ local function setHeadless(state)
 end
 headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
 
-local darkBtn, lightBtn
+----------------------------------------------------
+-- ניהול כפתורי התאורה (כולל חזרה לברירת המחדל)
+----------------------------------------------------
+local darkBtn, lightBtn, defaultLightingBtn
 
-local function setDarkLighting(state)
-	darkLightingActive = state
+local function updateLightingUI()
 	if darkLightingActive then
 		darkBtn.Text = "✅ מצב כהה: פעיל"
 		darkBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		Lighting.ClockTime = 20
-		Lighting.Brightness = 1.2
-		Lighting.GlobalShadows = true
 	else
 		darkBtn.Text = "🌒 מצב כהה: כבוי"
 		darkBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	end
-end
 
-local function setLightLighting(state)
-	lightLightingActive = state
 	if lightLightingActive then
 		lightBtn.Text = "✅ מצב בהיר: פעיל"
 		lightBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		Lighting.ClockTime = 14
-		Lighting.Brightness = 3
-		Lighting.GlobalShadows = false
 	else
 		lightBtn.Text = "☀️ מצב בהיר: כבוי"
 		lightBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	end
+
+	if defaultLightingActive then
+		defaultLightingBtn.Text = "✅ גרפיקה רגילה: פעיל"
+		defaultLightingBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+	else
+		defaultLightingBtn.Text = "🔄 גרפיקה רגילה (Default)"
+		defaultLightingBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
 end
 
 darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
-	if lightLightingActive then setLightLighting(false) end
-	setDarkLighting(not darkLightingActive)
+	darkLightingActive = true
+	lightLightingActive = false
+	defaultLightingActive = false
+
+	Lighting.ClockTime = 20
+	Lighting.Brightness = 1.2
+	Lighting.GlobalShadows = true
+	updateLightingUI()
 end)
 
 lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, function()
-	if darkLightingActive then setDarkLighting(false) end
-	setLightLighting(not lightLightingActive)
+	darkLightingActive = false
+	lightLightingActive = true
+	defaultLightingActive = false
+
+	Lighting.ClockTime = 14
+	Lighting.Brightness = 3
+	Lighting.GlobalShadows = false
+	updateLightingUI()
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
+defaultLightingBtn = createButton(rightCol, "🔄 גרפיקה רגילה (Default)", 5, function()
+	darkLightingActive = false
+	lightLightingActive = false
+	defaultLightingActive = true
+
+	Lighting.ClockTime = defaultClockTime
+	Lighting.Brightness = defaultBrightness
+	Lighting.GlobalShadows = defaultGlobalShadows
+	updateLightingUI()
+end)
+
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 6, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
@@ -530,8 +559,16 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
-	setDarkLighting(false)
-	setLightLighting(false)
+	
+	-- החזרה לתאורה המקורית
+	darkLightingActive = false
+	lightLightingActive = false
+	defaultLightingActive = true
+	Lighting.ClockTime = defaultClockTime
+	Lighting.Brightness = defaultBrightness
+	Lighting.GlobalShadows = defaultGlobalShadows
+	updateLightingUI()
+
 	speedUpdateFunc(30)
 	jumpUpdateFunc(50)
 	peakSpeed = 0
