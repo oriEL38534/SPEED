@@ -118,7 +118,7 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
--- ניקוי מוחלט של הילות
+-- ניקוי הילות
 local function removeHighlights()
 	if highlightsFolder then
 		highlightsFolder:Destroy()
@@ -203,7 +203,7 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 -- כפתור Infinite Jump
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
--- לוגיקת Infinite Jump מתוקנת וקשיחה
+-- מנגנון Infinite Jump קשיח עם עצירה מוחלטת
 local function disableInfJump()
 	infJumpActive = false
 	if infJumpConnection then
@@ -222,10 +222,12 @@ local function enableInfJump()
 	
 	infJumpConnection = UserInputService.JumpRequest:Connect(function()
 		if not infJumpActive then return end
+		
 		local char = player.Character
 		if char then
 			local hum = char:FindFirstChildOfClass("Humanoid")
 			if hum then
+				-- קפיצה תתבצע אך ורק אם המצב מופעל אקטיבית
 				hum:ChangeState(Enum.HumanoidStateType.Jumping)
 			end
 		end
