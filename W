@@ -586,6 +586,7 @@ RunService.RenderStepped:Connect(function(dt)
 			local root = char:FindFirstChild("HumanoidRootPart")
 			if root then
 				root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(spinSpeed * dt * 60), 0)
+				root.RotVelocity = Vector3.new(0, 0, 0)
 			end
 		end
 	end
