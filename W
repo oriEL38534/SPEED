@@ -147,18 +147,22 @@ print("LOAD: Columns created.")
 ----------------------------------------------------
 local function setSpeed(newSpeed)
 	currentSavedSpeed = newSpeed
-	local char = player.Character or player.CharacterAdded:Wait()
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	if hum then hum.WalkSpeed = newSpeed end
+	local char = player.Character
+	if char then
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		if hum then hum.WalkSpeed = newSpeed end
+	end
 end
 
 local function setJumpPower(newPower)
 	currentSavedJump = newPower
-	local char = player.Character or player.CharacterAdded:Wait()
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	if hum then
-		hum.UseJumpPower = true
-		hum.JumpPower = newPower
+	local char = player.Character
+	if char then
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			hum.UseJumpPower = true
+			hum.JumpPower = newPower
+		end
 	end
 end
 
@@ -281,10 +285,10 @@ local function createButton(parent, text, layoutOrder, onClick)
 	return btn
 end
 
-print("LOAD: UI Builders (Sliders & Buttons) loaded.")
+print("LOAD: UI Builders loaded.")
 
 ----------------------------------------------------
--- 5. חלונית BALL STATS (מעודכן בזמן אמת)
+-- 5. חלונית BALL STATS
 ----------------------------------------------------
 local ballStatsGui = Instance.new("ScreenGui")
 ballStatsGui.Name = "BallStatsGui"
@@ -384,7 +388,7 @@ end
 
 local function disableInfJump()
 	infJumpActive = false
-	ContextActionService:UnbindAction(ACTION_NAME)
+	pcall(function() ContextActionService:UnbindAction(ACTION_NAME) end)
 	infJumpBtn.Text = "♾️ Inf Jump: כבוי"
 	infJumpBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 end
@@ -392,7 +396,7 @@ end
 local function enableInfJump()
 	disableInfJump()
 	infJumpActive = true
-	ContextActionService:BindAction(ACTION_NAME, handleJumpAction, false, Enum.KeyCode.Space)
+	pcall(function() ContextActionService:BindAction(ACTION_NAME, handleJumpAction, false, Enum.KeyCode.Space) end)
 	infJumpBtn.Text = "✅ Inf Jump: פעיל"
 	infJumpBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
 end
@@ -420,9 +424,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
-----------------------------------------------------
--- מנגנון E-SPAM (מהיר וחזק)
-----------------------------------------------------
+-- מנגנון E-SPAM (עם הגנה)
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -438,7 +440,7 @@ local function setESpam(state)
 					task.wait(0.01)
 					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 				end)
-				RunService.RenderStepped:Wait()
+				task.wait(0.05)
 			end
 		end)
 	else
@@ -562,7 +564,7 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 end)
 
 ----------------------------------------------------
--- 💾 מערכת שמירה וטעינה (Save & Load Profile)
+-- 💾 מערכת שמירה וטעינה
 ----------------------------------------------------
 local fileName = "SpeedHub_Profile.json"
 
@@ -628,7 +630,7 @@ loadProfileBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 140)
 local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
-print("LOAD: Left and right column features fully assembled.")
+print("LOAD: Features fully assembled.")
 
 ----------------------------------------------------
 -- 7. מעקב נתוני הכדור בזמן אמת ו-Peak Speed
@@ -701,7 +703,7 @@ player.CharacterAdded:Connect(function(char)
 	if headlessActive then applyHeadless() end
 end)
 
-print("LOAD: Ball tracking and event handlers loaded.")
+print("LOAD: Ball tracking loaded.")
 
 ----------------------------------------------------
 -- 8. מסך פתיחה (Intro)
@@ -782,4 +784,4 @@ task.spawn(function()
 	toggleBtn.Visible = true
 end)
 
-print("LOAD: Script successfully fully loaded and executed!")
+print("LOAD: Script successfully initialized without crashes!")
