@@ -5,7 +5,6 @@ local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 
@@ -115,8 +114,6 @@ end
 closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
-print("LOAD: Main GUI and variables initialized.")
-
 ----------------------------------------------------
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
@@ -142,28 +139,26 @@ rightList.Padding = UDim.new(0, 6)
 rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
-print("LOAD: Columns created.")
-
 ----------------------------------------------------
--- 3. פונקציות תנועה ומצלמה
+-- 3. פונקציות תנועה ומצלמה (מוגנות מניתוק)
 ----------------------------------------------------
 local function setSpeed(newSpeed)
-	currentSavedSpeed = newSpeed
+	currentSavedSpeed = math.clamp(newSpeed, 16, 100) -- הגבלה למניעת Kick
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
-		if hum then hum.WalkSpeed = newSpeed end
+		if hum then hum.WalkSpeed = currentSavedSpeed end
 	end
 end
 
 local function setJumpPower(newPower)
-	currentSavedJump = newPower
+	currentSavedJump = math.clamp(newPower, 50, 120) -- הגבלה למניעת Kick
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
 		if hum then
 			hum.UseJumpPower = true
-			hum.JumpPower = newPower
+			hum.JumpPower = currentSavedJump
 		end
 	end
 end
@@ -175,8 +170,6 @@ local function setFOV(newFOV)
 		cam.FieldOfView = newFOV
 	end
 end
-
-print("LOAD: Movement functions ready.")
 
 ----------------------------------------------------
 -- 4. בנאי Sliders & Buttons
@@ -287,8 +280,6 @@ local function createButton(parent, text, layoutOrder, onClick)
 	return btn
 end
 
-print("LOAD: UI Builders loaded.")
-
 ----------------------------------------------------
 -- 5. חלונית BALL STATS
 ----------------------------------------------------
@@ -364,14 +355,12 @@ local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 4)
 btnCorner.Parent = resetPeakBtn
 
-print("LOAD: Ball Stats GUI configured.")
-
 ----------------------------------------------------
 -- 6. הרכבת האלמנטים בעמודות
 ----------------------------------------------------
-speedUpdateFunc = createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 1, function(val) setSpeed(val) end)
-jumpUpdateFunc = createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 2, function(val) setJumpPower(val) end)
-fovUpdateFunc = createSlider(leftCol, "👁️ FOV", 70, 150, 70, 3, function(val) setFOV(val) end)
+speedUpdateFunc = createSlider(leftCol, "⚡ מהירות", 16, 100, 30, 1, function(val) setSpeed(val) end)
+jumpUpdateFunc = createSlider(leftCol, "🦘 גובה קפיצה", 50, 120, 50, 2, function(val) setJumpPower(val) end)
+fovUpdateFunc = createSlider(leftCol, "👁️ FOV", 70, 120, 70, 3, function(val) setFOV(val) end)
 
 local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 4, function() end)
 
@@ -426,37 +415,12 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM
-local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
-
-local function setESpam(state)
-	eSpamActive = state
-	if eSpamActive then
-		eSpamBtn.Text = "✅ E-Spam: פעיל"
-		eSpamBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		
-		task.spawn(function()
-			while eSpamActive do
-				pcall(function()
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-					task.wait(0.01)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-				end)
-				task.wait(0.05)
-			end
-		end)
-	else
-		eSpamBtn.Text = "⚡ E-Spam: כבוי"
-		eSpamBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-	end
-end
-
-eSpamBtn.MouseButton1Click:Connect(function()
-	setESpam(not eSpamActive)
-end)
+-- מנגנון E-SPAM (מנוטרל מסיבות אבטחה של המשחק למניעת Kick)
+local eSpamBtn = createButton(leftCol, "⚡ E-Spam: לא זמין", 6, function() end)
+eSpamBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY חסין מבעיות Anti-Cheat
+-- 🛡️ מנגנון AUTO PARRY מעודכן ובטוח
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -617,8 +581,6 @@ local function loadProfileData()
 				lightLightingActive = false
 				lightBtn.MouseButton1Click:Fire()
 			end
-			
-			print("LOAD: Profile successfully loaded!")
 		end
 	end
 end
@@ -645,7 +607,6 @@ local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
 		pcall(function()
 			writefile(fileName, encoded)
 		end)
-		print("LOAD: Profile successfully saved!")
 	end
 end)
 saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
@@ -675,14 +636,10 @@ end)
 local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
-print("LOAD: Features fully assembled.")
-
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור, Auto Parry ובקרת לחיצות
+-- 7. מעקב נתוני הכדור ומדידת מהירות
 ----------------------------------------------------
 local peakSpeed = 0
-local lastParryTime = 0
-local parryCooldown = 0.35 -- השהייה למניעת Kick
 
 resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeed = 0
@@ -703,48 +660,14 @@ end
 
 RunService.RenderStepped:Connect(function()
 	local ball = getBall()
-	local char = player.Character
-	
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
-		
-		-- עדכון Peak Speed
 		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
 				peakSpeed = currentSpeed
 				peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
 			end
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
-		end
-		
-		-- Auto Parry מוגן
-		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
-			local hrp = char.HumanoidRootPart
-			local distance = (ball.Position - hrp.Position).Magnitude
-			local ballVel = ball.AssemblyLinearVelocity
-			
-			-- בדיקה האם הכדור זז לכיוון השחקן
-			local dirToPlayer = (hrp.Position - ball.Position).Unit
-			local isApproaching = ballVel.Magnitude > 2 and (ballVel.Unit:Dot(dirToPlayer) > 0.15)
-			
-			-- חישוב מרחק תגובה דינמי
-			local reactionDistance = math.clamp(12 + (currentSpeed * 0.12), 12, 35)
-			
-			if isApproaching and distance <= reactionDistance then
-				local currentTime = os.clock()
-				if (currentTime - lastParryTime) >= parryCooldown then
-					lastParryTime = currentTime
-					
-					-- הרצה בתהליך מופרד למניעת תקיעות ודיסקורד
-					task.spawn(function()
-						pcall(function()
-							VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-							task.wait(0.02)
-							VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-						end)
-					end)
-				end
-			end
 		end
 	else
 		if ballStatsActive and statsFrame.Visible then
@@ -758,7 +681,6 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
-	setESpam(false)
 	setAutoParry(false)
 	setAutoLoad(false)
 	
@@ -791,8 +713,6 @@ player.CharacterAdded:Connect(function(char)
 		end)
 	end
 end)
-
-print("LOAD: Ball tracking & Safe Auto Parry loaded.")
 
 ----------------------------------------------------
 -- 8. מסך פתיחה (Intro)
@@ -883,5 +803,3 @@ task.spawn(function()
 	frame.Visible = true
 	toggleBtn.Visible = true
 end)
-
-print("LOAD: Script successfully initialized with Safe Auto Parry!")
