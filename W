@@ -21,7 +21,6 @@ introGui.Name = "ScriptIntroGui"
 introGui.ResetOnSpawn = false
 introGui.Parent = pGui
 
--- חלון מרכזי ראשי
 local introFrame = Instance.new("Frame")
 introFrame.Size = UDim2.new(0, 340, 0, 140)
 introFrame.Position = UDim2.new(0.5, 0, 0.45, 0)
@@ -36,14 +35,12 @@ local introCorner = Instance.new("UICorner")
 introCorner.CornerRadius = UDim.new(0, 16)
 introCorner.Parent = introFrame
 
--- מסגרת ניאון דינמית (UIStroke)
 local introStroke = Instance.new("UIStroke")
 introStroke.Color = Color3.fromRGB(0, 170, 255)
 introStroke.Thickness = 3
 introStroke.Transparency = 1
 introStroke.Parent = introFrame
 
--- כותרת MY-SCRIPT
 local introLabel = Instance.new("TextLabel")
 introLabel.Size = UDim2.new(1, 0, 0.35, 0)
 introLabel.Position = UDim2.new(0, 0, 0.1, 0)
@@ -55,7 +52,6 @@ introLabel.TextSize = 28
 introLabel.Font = Enum.Font.GothamBold
 introLabel.Parent = introFrame
 
--- טקסט טעינה דינמי
 local subLabel = Instance.new("TextLabel")
 subLabel.Size = UDim2.new(1, 0, 0.2, 0)
 subLabel.Position = UDim2.new(0, 0, 0.45, 0)
@@ -67,7 +63,6 @@ subLabel.TextSize = 13
 subLabel.Font = Enum.Font.GothamMedium
 subLabel.Parent = introFrame
 
--- פס טעינה חיצוני
 local barBackground = Instance.new("Frame")
 barBackground.Size = UDim2.new(0.85, 0, 0, 8)
 barBackground.Position = UDim2.new(0.075, 0, 0.75, 0)
@@ -80,7 +75,6 @@ local barCorner = Instance.new("UICorner")
 barCorner.CornerRadius = UDim.new(1, 0)
 barCorner.Parent = barBackground
 
--- פס מילוי פנימי
 local barFill = Instance.new("Frame")
 barFill.Size = UDim2.new(0, 0, 1, 0)
 barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
@@ -92,7 +86,6 @@ local fillCorner = Instance.new("UICorner")
 fillCorner.CornerRadius = UDim.new(1, 0)
 fillCorner.Parent = barFill
 
--- אפקט צבעים מתחלפים (Rainbow/RGB) למסגרת בזמן ההמתנה
 local rgbConnection
 rgbConnection = RunService.RenderStepped:Connect(function()
 	if introGui and introGui.Parent then
@@ -104,7 +97,6 @@ rgbConnection = RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- הרצת רצף ההנפשה הארוך (6 שניות)
 local openTween = TweenService:Create(introFrame, TweenInfo.new(1.0, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 0.05})
 local strokeFade = TweenService:Create(introStroke, TweenInfo.new(0.6), {Transparency = 0})
 local textFade = TweenService:Create(introLabel, TweenInfo.new(0.6), {TextTransparency = 0})
@@ -119,13 +111,12 @@ subFade:Play()
 barBgFade:Play()
 barFillFade:Play()
 
--- שלבי הטעינה (סך הכל 6 שניות)
 task.wait(0.8)
 subLabel.Text = "LOADING UI MODULES [25%]"
 TweenService:Create(barFill, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
 
 task.wait(1.5)
-subLabel.Text = "INJECTING GRAPHICS [60%]"
+subLabel.Text = "INJECTING GRAPHICS & COSMETICS [60%]"
 TweenService:Create(barFill, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {Size = UDim2.new(0.60, 0, 1, 0)}):Play()
 
 task.wait(1.5)
@@ -138,7 +129,6 @@ TweenService:Create(barFill, TweenInfo.new(0.5), {Size = UDim2.new(1, 0, 1, 0)})
 
 task.wait(1.0)
 
--- יציאה חלקה
 local closeTween = TweenService:Create(introFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {BackgroundTransparency = 1})
 TweenService:Create(introStroke, TweenInfo.new(0.5), {Transparency = 1}):Play()
 TweenService:Create(introLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
@@ -153,9 +143,11 @@ if rgbConnection then rgbConnection:Disconnect() end
 introGui:Destroy()
 
 ----------------------------------------------------
--- 2. יצירת התפריט הראשי (נוצר רק עכשיו!)
+-- 2. יצירת התפריט הראשי
 ----------------------------------------------------
 local infJumpActive = false
+local korbloxActive = false
+local headlessActive = false
 local highlightsFolder = nil
 local createdLight = nil
 
@@ -164,9 +156,10 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
+-- הגדלנו מעט את גובה החלון כדי להכיל את הכפתורים החדשים
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 420)
-frame.Position = UDim2.new(0.05, 0, 0.2, 0)
+frame.Size = UDim2.new(0, 220, 0, 510)
+frame.Position = UDim2.new(0.05, 0, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 frame.BorderSizePixel = 1
 frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -225,7 +218,57 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 3. כפתורים ופונקציות תפריט
+-- 3. פונקציות קוסמטיקה (Client-Side Only)
+----------------------------------------------------
+local function applyKorblox()
+	local char = player.Character
+	if not char then return end
+	
+	local rightLeg = char:FindFirstChild("Right Leg") or char:FindFirstChild("RightLowerLeg")
+	if rightLeg then
+		if char:FindFirstChild("Right Leg") then
+			-- R6 Model
+			rightLeg.MeshId = "rbxassetid://90294209"
+			rightLeg.TextureID = "rbxassetid://90284029"
+			rightLeg.Transparency = 0
+		else
+			-- R15 Model
+			local rightLower = char:FindFirstChild("RightLowerLeg")
+			local rightUpper = char:FindFirstChild("RightUpperLeg")
+			local rightFoot = char:FindFirstChild("RightFoot")
+			
+			if rightLower then
+				local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
+				mesh.MeshId = "rbxassetid://90294209"
+				mesh.TextureId = "rbxassetid://90284029"
+			end
+			if rightFoot then rightFoot.Transparency = 1 end
+		end
+	end
+end
+
+local function applyHeadless()
+	local char = player.Character
+	if not char then return end
+	
+	local head = char:FindFirstChild("Head")
+	if head then
+		head.Transparency = 1
+		local face = head:FindFirstChildOfClass("Decal")
+		if face then face.Transparency = 1 end
+	end
+end
+
+-- שמירה על הקוסמטיקה גם בעת מות/איפוס דמות
+player.CharacterAdded:Connect(function(char)
+	char:WaitForChild("Humanoid")
+	task.wait(0.5)
+	if korbloxActive then applyKorblox() end
+	if headlessActive then applyHeadless() end
+end)
+
+----------------------------------------------------
+-- 4. כפתורים ופונקציות תפריט
 ----------------------------------------------------
 local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
@@ -345,7 +388,34 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
-createButton("🌒 מצב כהה", 215, function()
+-- כפתורי Korblox ו-Headless החדשים
+local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 215, function() end)
+korbloxBtn.MouseButton1Click:Connect(function()
+	korbloxActive = not korbloxActive
+	if korbloxActive then
+		korbloxBtn.Text = "✅ Korblox Leg: פעיל"
+		korbloxBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+		applyKorblox()
+	else
+		korbloxBtn.Text = "🦵 Korblox Leg: כבוי"
+		korbloxBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+	end
+end)
+
+local headlessBtn = createButton("💀 Headless: כבוי", 260, function() end)
+headlessBtn.MouseButton1Click:Connect(function()
+	headlessActive = not headlessActive
+	if headlessActive then
+		headlessBtn.Text = "✅ Headless: פעיל"
+		headlessBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+		applyHeadless()
+	else
+		headlessBtn.Text = "💀 Headless: כבוי"
+		headlessBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+	end
+end)
+
+createButton("🌒 מצב כהה", 305, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
@@ -354,7 +424,7 @@ createButton("🌒 מצב כהה", 215, function()
 	applyDarkHighlights()
 end)
 
-createButton("☀️ מצב בהיר", 260, function()
+createButton("☀️ מצב בהיר", 350, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
@@ -364,7 +434,7 @@ createButton("☀️ מצב בהיר", 260, function()
 	applyBlackAura()
 end)
 
-createButton("🔄 החזר גרפיקה לרגיל", 305, function()
+createButton("🔄 החזר גרפיקה לרגיל", 395, function()
 	removeHighlights()
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2
@@ -374,11 +444,17 @@ createButton("🔄 החזר גרפיקה לרגיל", 305, function()
 	Lighting.FogEnd = 10000
 end)
 
-local resetAllBtn = createButton("🛑 איפוס הכל", 350, function() end)
+local resetAllBtn = createButton("🛑 איפוס הכל", 440, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
 resetAllBtn.MouseButton1Click:Connect(function()
 	removeHighlights()
 	disableInfJump()
+	korbloxActive = false
+	headlessActive = false
+	korbloxBtn.Text = "🦵 Korblox Leg: כבוי"
+	korbloxBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+	headlessBtn.Text = "💀 Headless: כבוי"
+	headlessBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 	setSpeed(16)
 end)
