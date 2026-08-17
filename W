@@ -143,7 +143,7 @@ if rgbConnection then rgbConnection:Disconnect() end
 introGui:Destroy()
 
 ----------------------------------------------------
--- 2. יצירת התפריט הראשי
+-- 2. יצירת התפריט הראשי (גודל מותאם לחלוטין)
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
@@ -156,10 +156,10 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- הגדלנו מעט את גובה החלון כדי להכיל את הכפתורים החדשים
+-- חלון מוגדל (גובה 520) כדי להכיל את כל הכפתורים בצורה מרווחת
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 510)
-frame.Position = UDim2.new(0.05, 0, 0.15, 0)
+frame.Size = UDim2.new(0, 220, 0, 520)
+frame.Position = UDim2.new(0.05, 0, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 frame.BorderSizePixel = 1
 frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -227,16 +227,12 @@ local function applyKorblox()
 	local rightLeg = char:FindFirstChild("Right Leg") or char:FindFirstChild("RightLowerLeg")
 	if rightLeg then
 		if char:FindFirstChild("Right Leg") then
-			-- R6 Model
 			rightLeg.MeshId = "rbxassetid://90294209"
 			rightLeg.TextureID = "rbxassetid://90284029"
 			rightLeg.Transparency = 0
 		else
-			-- R15 Model
 			local rightLower = char:FindFirstChild("RightLowerLeg")
-			local rightUpper = char:FindFirstChild("RightUpperLeg")
 			local rightFoot = char:FindFirstChild("RightFoot")
-			
 			if rightLower then
 				local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
 				mesh.MeshId = "rbxassetid://90294209"
@@ -259,7 +255,6 @@ local function applyHeadless()
 	end
 end
 
--- שמירה על הקוסמטיקה גם בעת מות/איפוס דמות
 player.CharacterAdded:Connect(function(char)
 	char:WaitForChild("Humanoid")
 	task.wait(0.5)
@@ -347,12 +342,12 @@ local function applyBlackAura()
 	end
 end
 
--- יצירת כפתורי התפריט
+-- סידור הכפתורים (כל כפתור במרחק 40 פיקסלים)
 createButton("מהירות 30", 45, function() setSpeed(30) end)
 createButton("מהירות 100", 85, function() setSpeed(100) end)
 createButton("מהירות 200", 125, function() setSpeed(200) end)
 
-local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
+local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 165, function() end)
 
 local ACTION_NAME = "InfJumpAction"
 
@@ -388,8 +383,8 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- כפתורי Korblox ו-Headless החדשים
-local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 215, function() end)
+-- כפתורי Korblox ו-Headless 
+local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 205, function() end)
 korbloxBtn.MouseButton1Click:Connect(function()
 	korbloxActive = not korbloxActive
 	if korbloxActive then
@@ -402,7 +397,7 @@ korbloxBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local headlessBtn = createButton("💀 Headless: כבוי", 260, function() end)
+local headlessBtn = createButton("💀 Headless: כבוי", 245, function() end)
 headlessBtn.MouseButton1Click:Connect(function()
 	headlessActive = not headlessActive
 	if headlessActive then
@@ -415,7 +410,7 @@ headlessBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-createButton("🌒 מצב כהה", 305, function()
+createButton("🌒 מצב כהה", 285, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
@@ -424,7 +419,7 @@ createButton("🌒 מצב כהה", 305, function()
 	applyDarkHighlights()
 end)
 
-createButton("☀️ מצב בהיר", 350, function()
+createButton("☀️ מצב בהיר", 325, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
@@ -434,7 +429,7 @@ createButton("☀️ מצב בהיר", 350, function()
 	applyBlackAura()
 end)
 
-createButton("🔄 החזר גרפיקה לרגיל", 395, function()
+createButton("🔄 החזר גרפיקה לרגיל", 365, function()
 	removeHighlights()
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2
@@ -444,7 +439,7 @@ createButton("🔄 החזר גרפיקה לרגיל", 395, function()
 	Lighting.FogEnd = 10000
 end)
 
-local resetAllBtn = createButton("🛑 איפוס הכל", 440, function() end)
+local resetAllBtn = createButton("🛑 איפוס הכל", 405, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
 resetAllBtn.MouseButton1Click:Connect(function()
