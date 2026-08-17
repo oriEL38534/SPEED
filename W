@@ -25,7 +25,6 @@ local defaultGlobalShadows = Lighting.GlobalShadows
 local infJumpActive = false
 local korbloxActive = false
 local headlessActive = false
-local invisibleActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
@@ -402,7 +401,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- כפתור אוטו קליקר עוקף אנטי-צ'יאט
+-- כפתור אוטו קליקר מהיר ובטוח
 local autoClickerBtn = createButton(leftCol, "🤖 Auto Clicker (E): כבוי", 6, function() end)
 
 local function setAutoClicker(state)
@@ -420,18 +419,17 @@ autoClickerBtn.MouseButton1Click:Connect(function()
 	setAutoClicker(not autoClickerActive)
 end)
 
--- לולאת אוטו-קליקר בטוחה יותר שמונעת קיק
+-- לולאת אוטו-קליקר מהירה עם השהיה אופטימלית למניעת קיק
 task.spawn(function()
 	while true do
 		if autoClickerActive then
 			pcall(function()
-				-- שליחה בטוחה דרך השרת/משתמש בלי להציף את ה-VirtualInputManager בצורה מחשידה
 				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
 				task.wait(0.01)
 				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 			end)
 		end
-		task.wait(0.1)
+		task.wait(0.05)
 	end
 end)
 
@@ -459,23 +457,6 @@ local function applyHeadless()
 			head.Transparency = 1
 			local face = head:FindFirstChildOfClass("Decal")
 			if face then face.Transparency = 1 end
-		end
-	end)
-end
-
-local function applyInvisible(state)
-	invisibleActive = state
-	pcall(function()
-		local char = player.Character
-		if not char then return end
-		for _, part in ipairs(char:GetDescendants()) do
-			if part:IsA("BasePart") then
-				if part.Name ~= "HumanoidRootPart" then
-					part.LocalTransparencyModifier = state and 1 or 0
-				end
-			elseif part:IsA("Decal") or part:IsA("Texture") then
-				part.Transparency = state and 1 or 0
-			end
 		end
 	end)
 end
@@ -508,21 +489,6 @@ local function setHeadless(state)
 end
 headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
 
-local invisibleBtn = createButton(rightCol, "👻 Invisible: כבוי", 3, function() end)
-local function setInvisible(state)
-	invisibleActive = state
-	if invisibleActive then
-		invisibleBtn.Text = "✅ Invisible: פעיל"
-		invisibleBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		applyInvisible(true)
-	else
-		invisibleBtn.Text = "👻 Invisible: כבוי"
-		invisibleBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-		applyInvisible(false)
-	end
-end
-invisibleBtn.MouseButton1Click:Connect(function() setInvisible(not invisibleActive) end)
-
 local darkBtn, lightBtn
 
 local function restoreDefaultLighting()
@@ -531,7 +497,7 @@ local function restoreDefaultLighting()
 	Lighting.GlobalShadows = defaultGlobalShadows
 end
 
-darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 4, function()
+darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
 	if darkLightingActive then
 		darkLightingActive = false
 		darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -552,7 +518,7 @@ darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 4, function()
 	end
 end)
 
-lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 5, function()
+lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, function()
 	if lightLightingActive then
 		lightLightingActive = false
 		lightBtn.Text = "☀️ מצב בהיר: כבוי"
@@ -573,7 +539,7 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 5, functio
 	end
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 6, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 local peakSpeed = 0
@@ -633,7 +599,6 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setAutoClicker(false)
 	setKorblox(false)
 	setHeadless(false)
-	setInvisible(false)
 	setBallStats(false)
 	
 	darkLightingActive = false
@@ -663,7 +628,6 @@ local function setupCharacter(char)
 
 	if korbloxActive then applyKorblox() end
 	if headlessActive then applyHeadless() end
-	if invisibleActive then applyInvisible(true) end
 
 	task.spawn(function()
 		for i = 1, 10 do
