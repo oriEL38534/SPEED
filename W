@@ -514,35 +514,30 @@ resetPeakBtn.MouseButton1Click:Connect(function()
 end)
 
 local function getBall()
-	local ballsFolder = Workspace:FindFirstChild("Balls")
-	if ballsFolder then
-		local closestBall = nil
-		local shortestDist = math.huge
-		local char = player.Character
-		local root = char and char:FindFirstChild("HumanoidRootPart")
-		
-		for _, v in pairs(ballsFolder:GetChildren()) do
-			if v:IsA("BasePart") and v.Transparency < 1 then
-				if root then
-					local dist = (v.Position - root.Position).Magnitude
-					if dist < shortestDist then
-						shortestDist = dist
-						closestBall = v
-					end
-				else
-					return v
-				end
+	-- חיפוש גלובלי מתקדם לכדור במשחק (עובד בכל סוגי המפות)
+	for _, obj in pairs(Workspace:GetDescendants()) do
+		if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name == "Moon" or obj.Name:lower():find("ball")) then
+			if obj.Transparency < 1 then
+				return obj
 			end
 		end
-		return closestBall
 	end
-	return Workspace:FindFirstChild("Ball")
+	return nil
 end
 
 RunService.RenderStepped:Connect(function(dt)
 	local ball = getBall()
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
+		
+		-- אם המהירות הפיזית היא 0 אבל יש תנועה, ננסה לבדוק מהירויות חלופיות
+		if currentSpeed == 0 then
+			pcall(function()
+				if ball:GetAttribute("Speed") then
+					currentSpeed = math.floor(ball:GetAttribute("Speed"))
+				end
+			end)
+		end
 		
 		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
