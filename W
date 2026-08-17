@@ -513,50 +513,54 @@ resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
-local function getBall()
-	local ballsFolder = Workspace:FindFirstChild("Balls")
-	if ballsFolder then
-		for _, v in pairs(ballsFolder:GetChildren()) do
-			if v:IsA("BasePart") and v.Transparency < 1 then
-				return v
-			end
-		end
-	end
-	
-	-- חיפוש גלובלי מדויק יותר לכדור
+local function getMovingBall()
+	local highestSpeed = 0
+	local targetPart = nil
+
+	-- חיפוש גלובלי חכם לפי מהירות פיזית חיה (AssemblyLinearVelocity)
 	for _, obj in pairs(Workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name:lower() == "ball") then
-			if obj.Transparency < 1 then
-				return obj
+		if obj:IsA("BasePart") and obj.Transparency < 1 then
+			-- לוודא שזה לא השחקן עצמו או חלקים סטטיים של המפה
+			local isCharacterPart = false
+			for _, p in pairs(Players:GetPlayers()) do
+				if p.Character and obj:IsDescendantOf(p.Character) then
+					isCharacterPart = true
+					break
+				end
+			end
+			
+			if not isCharacterPart then
+				local speed = obj.AssemblyLinearVelocity.Magnitude
+				if speed > highestSpeed then
+					highestSpeed = speed
+					targetPart = obj
+				end
 			end
 		end
 	end
-	return nil
+
+	return targetPart, math.floor(highestSpeed)
 end
 
 RunService.RenderStepped:Connect(function(dt)
-	local ball = getBall()
-	if ball and ball:IsA("BasePart") then
-		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
+	if ballStatsActive and statsFrame.Visible then
+		local ballPart, currentSpeed = getMovingBall()
 		
-		-- בדיקת מאפיינים חלופיים למקרה שהמשחק שומר את המהירות ב-Attribute
-		pcall(function()
-			if currentSpeed == 0 and ball:GetAttribute("Speed") then
-				currentSpeed = math.floor(ball:GetAttribute("Speed"))
-			end
-		end)
+		-- גיבוי לבדיקת Attribute מהירות אם קיימת
+		if ballPart then
+			pcall(function()
+				if ballPart:GetAttribute("Speed") and ballPart:GetAttribute("Speed") > currentSpeed then
+					currentSpeed = math.floor(ballPart:GetAttribute("Speed"))
+				end
+			end)
+		end
+
+		if currentSpeed > peakSpeed then
+			peakSpeed = currentSpeed
+			peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
+		end
 		
-		if ballStatsActive and statsFrame.Visible then
-			if currentSpeed > peakSpeed then
-				peakSpeed = currentSpeed
-				peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
-			end
-			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
-		end
-	else
-		if ballStatsActive and statsFrame.Visible then
-			currentSpeedLabel.Text = "⚡ Speed: 0"
-		end
+		currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 	end
 end)
 
