@@ -94,7 +94,7 @@ local function setSpeed(newSpeed)
 	end
 end
 
--- פונקציית עזר ליצירת כפתורים כהים
+-- פונקציית עזר ליצירת כפתורים
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.86, 0, 0, 32)
@@ -123,15 +123,15 @@ createButton("מהירות 100", 90, function() setSpeed(100) end)
 createButton("מהירות 200", 130, function() setSpeed(200) end)
 createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 
--- יצירת כפתורי הספאם מראש לעדכון וויזואלי
+-- כפתורי הספאם
 local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
 local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
 
--- פונקציה לעצירת הספאם
+-- פונקציה לעצירת הספאם בטוחה ומיידית
 local function stopSpam()
 	spamEnabled = false
 	if spamThread then
-		task.cancel(spamThread) -- עצירה מוחלטת ומיידית של התהליך
+		task.cancel(spamThread)
 		spamThread = nil
 	end
 	spamBtn.Text = "⚡ הפעל ספאם [R]"
@@ -156,11 +156,13 @@ local function startSpam()
 	end
 end
 
--- חיבור הלחיצות בכפתורי הממשק
-spamBtn.MouseButton1Click:Connect(startSpam)
+-- חיבור כפתורי הממשק
+spamBtn.MouseButton1Click:Connect(function()
+	if spamEnabled then stopSpam() else startSpam() end
+end)
 stopSpamBtn.MouseButton1Click:Connect(stopSpam)
 
--- הפיכת מקש R למתג Toggle מהיר וביטחוני
+-- שליטה דרך מקש R בלבד (ללא שום הקרנה מעכבר)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == Enum.KeyCode.R then
