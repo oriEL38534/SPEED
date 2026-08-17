@@ -1,5 +1,10 @@
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
+
+-- משתנים לניהול Infinite Jump
+local infiniteJumpEnabled = false
+local jumpConnection = nil
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -13,9 +18,9 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- יצירת המסגרת (Frame) - רקע לבן
+-- יצירת המסגרת (Frame) - מוגדלת מעט כדי להכיל את הכפתורים החדשים
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 220)
+frame.Size = UDim2.new(0, 200, 0, 310)
 frame.Position = UDim2.new(0.05, 0, 0.3, 0)
 frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- לבן
 frame.BorderSizePixel = 0
@@ -23,18 +28,18 @@ frame.Active = true
 frame.Draggable = true -- מאפשר לגרור את החלון
 frame.Parent = screenGui
 
--- כותרת - לבן עם אפור בהיר
+-- כותרת
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 0, 0, 0)
 title.Text = "תפריט מהירות"
-title.TextColor3 = Color3.fromRGB(0, 0, 0) -- טקסט שחור
-title.BackgroundColor3 = Color3.fromRGB(230, 230, 230) -- אפור בהיר
+title.TextColor3 = Color3.fromRGB(0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
 title.TextSize = 18
 title.Font = Enum.Font.SourceSansBold
 title.Parent = frame
 
--- כפתור סגירה (X) בחלון
+-- כפתור סגירה (X)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 40)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -58,7 +63,7 @@ toggleBtn.BorderColor3 = Color3.fromRGB(200, 200, 200)
 toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
-toggleBtn.Draggable = true -- אפשר להזיז גם את כפתור הפתיחה
+toggleBtn.Draggable = true
 toggleBtn.Parent = screenGui
 
 -- לוגיקת פתיחה/סגירה
@@ -69,7 +74,7 @@ end
 closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
--- פונקציה לעדכון המהירות של השחקן
+-- פונקציה לעדכון המהירות
 local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -80,7 +85,7 @@ local function setSpeed(newSpeed)
 end
 
 -- פונקציית עזר ליצירת כפתורים
-local function createButton(text, positionY, speedValue)
+local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.8, 0, 0, 30)
 	btn.Position = UDim2.new(0.1, 0, 0, positionY)
@@ -89,17 +94,44 @@ local function createButton(text, positionY, speedValue)
 	btn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
 	btn.BorderSizePixel = 1
 	btn.BorderColor3 = Color3.fromRGB(200, 200, 200)
-	btn.TextSize = 16
+	btn.TextSize = 15
 	btn.Font = Enum.Font.SourceSans
 	btn.Parent = frame
 
 	btn.MouseButton1Click:Connect(function()
-		setSpeed(speedValue)
+		onClick(btn)
 	end)
+	return btn
 end
 
--- יצירת הכפתורים לבחירת מהירות
-createButton("מהירות 30", 50, 30)
-createButton("מהירות 100", 90, 100)
-createButton("מהירות 200", 130, 200)
-createButton("איפוס (16)", 170, 16)
+-- כפתורי מהירות
+createButton("מהירות 30", 50, function() setSpeed(30) end)
+createButton("מהירות 100", 90, function() setSpeed(100) end)
+createButton("מהירות 200", 130, function() setSpeed(200) end)
+createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
+
+-- מנגנון Infinite Jump
+jumpConnection = UserInputService.JumpRequest:Connect(function()
+	if infiniteJumpEnabled then
+		local char = player.Character
+		if char then
+			local hum = char:FindFirstChildOfClass("Humanoid")
+			if hum then
+				hum:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+		end
+	end
+end)
+
+-- כפתורי Infinite Jump
+local infJumpBtn = createButton("♾️ הפעל Inf Jump", 215, function(btn)
+	infiniteJumpEnabled = true
+	btn.Text = "✅ Inf Jump פעיל"
+	btn.BackgroundColor3 = Color3.fromRGB(220, 245, 220)
+end)
+
+createButton("🔴 כבה Inf Jump", 255, function()
+	infiniteJumpEnabled = false
+	infJumpBtn.Text = "♾️ הפעל Inf Jump"
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+end)
