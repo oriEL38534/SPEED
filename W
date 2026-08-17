@@ -18,6 +18,7 @@ local defaultLighting = {
 local infJumpActive = false
 local infJumpConnection = nil
 local highlightsFolder = nil
+local createdLight = nil
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -127,15 +128,34 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
--- ניקוי הילות
+-- ניקוי הילות ותאורה
 local function removeHighlights()
 	if highlightsFolder then
 		highlightsFolder:Destroy()
 		highlightsFolder = nil
 	end
+	if createdLight then
+		createdLight:Destroy()
+		createdLight = nil
+	end
 end
 
--- יצירת הילות לכדור ולשחקנים
+-- איתור אקטיבי של הכדור
+local function findBall()
+	local names = {"Ball", "Football", "SoccerBall", "TPSBall"}
+	for _, v in ipairs(Workspace:GetDescendants()) do
+		if v:IsA("BasePart") then
+			for _, name in ipairs(names) do
+				if v.Name:lower():find(name:lower()) then
+					return v
+				end
+			end
+		end
+	end
+	return nil
+end
+
+-- יצירת הילות ותאורת אש מודגשת
 local function applyHighlights()
 	removeHighlights()
 	
@@ -143,34 +163,36 @@ local function applyHighlights()
 	highlightsFolder.Name = "DarkGlowHighlights"
 	highlightsFolder.Parent = Workspace
 
-	-- 1. הילה לכדור (כתום-אש)
-	local ballsFolder = Workspace:FindFirstChild("Balls")
-	local targetBall = nil
-	
-	if ballsFolder then
-		targetBall = ballsFolder:FindFirstChildOfClass("Part") or ballsFolder:FindFirstChildOfClass("Model")
-	else
-		targetBall = Workspace:FindFirstChild("Ball")
-	end
-	
+	-- 1. איתור וחיזוק הילת הכדור + אור זרחני
+	local targetBall = findBall()
 	if targetBall then
+		-- הילה זוהרת
 		local ballHighlight = Instance.new("Highlight")
-		ballHighlight.Name = "BallGlow"
-		ballHighlight.FillColor = Color3.fromRGB(255, 80, 0)
-		ballHighlight.FillTransparency = 0.4
-		ballHighlight.OutlineColor = Color3.fromRGB(255, 220, 0)
+		ballHighlight.Name = "BallSuperGlow"
+		ballHighlight.FillColor = Color3.fromRGB(255, 120, 0) -- אש כתומה זורחת
+		ballHighlight.FillTransparency = 0.1 -- שקיפות כמעט אפסית כדי שיהיה בולט
+		ballHighlight.OutlineColor = Color3.fromRGB(255, 255, 0) -- צהוב בוהק
 		ballHighlight.OutlineTransparency = 0
-		ballHighlight.Parent = targetBall
+		ballHighlight.Parent = highlightsFolder
 		ballHighlight.Adornee = targetBall
+
+		-- פנס פנימי בתוך הכדור שמפזר אור סביבו
+		local light = Instance.new("PointLight")
+		light.Name = "BallLight"
+		light.Color = Color3.fromRGB(255, 140, 0)
+		light.Range = 35 -- טווח תאורה רחב
+		light.Brightness = 10 -- עוצמת תאורה חזקה מאוד
+		light.Parent = targetBall
+		createdLight = light
 	end
 
-	-- 2. הילה לכל השחקנים (לבן-תכלת זוהר)
+	-- 2. הילה לכל השחקנים (תכלת זוהר)
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character then
 			local plrHighlight = Instance.new("Highlight")
 			plrHighlight.Name = plr.Name .. "_Glow"
-			plrHighlight.FillColor = Color3.fromRGB(0, 200, 255)
-			plrHighlight.FillTransparency = 0.6
+			plrHighlight.FillColor = Color3.fromRGB(0, 180, 255)
+			plrHighlight.FillTransparency = 0.5
 			plrHighlight.OutlineColor = Color3.fromRGB(255, 255, 255)
 			plrHighlight.OutlineTransparency = 0
 			plrHighlight.Parent = highlightsFolder
@@ -188,7 +210,7 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
 -- שליטה בגרפיקת המשחק
-createButton("🌒 כהה (עם כדור ושחקנים זוהרים)", 215, function()
+createButton("🌒 כהה (עם כדור זרחני עוצמתי)", 215, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
