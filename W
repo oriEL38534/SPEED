@@ -19,7 +19,6 @@ if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 local infJumpActive = false
 local korbloxActive = false
 local headlessActive = false
-local highlightsFolder = nil
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
@@ -27,7 +26,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 230, 0, 560)
+frame.Size = UDim2.new(0, 240, 0, 520) -- מותאם למציג את כל האלמנטים באופן מרווח
 frame.Position = UDim2.new(0.05, 0, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 frame.BorderSizePixel = 1
@@ -42,8 +41,8 @@ frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -30, 0, 40)
-title.Position = UDim2.new(0, 12, 0, 0)
+title.Size = UDim2.new(1, -30, 0, 35)
+title.Position = UDim2.new(0, 12, 0, 5)
 title.Text = "MY-SCRIPT MENU"
 title.TextColor3 = Color3.fromRGB(0, 170, 255)
 title.BackgroundTransparency = 1
@@ -53,8 +52,8 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 40)
-closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.Size = UDim2.new(0, 30, 0, 35)
+closeBtn.Position = UDim2.new(1, -30, 0, 5)
 closeBtn.Text = "✕"
 closeBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
 closeBtn.BackgroundTransparency = 1
@@ -89,7 +88,7 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. פונקציות עזר לבניית רכיבים ו-Slider
+-- 2. פונקציות שינוי ערכים
 ----------------------------------------------------
 local function setSpeed(newSpeed)
 	local char = player.Character or player.CharacterAdded:Wait()
@@ -106,10 +105,13 @@ local function setJumpPower(newPower)
 	end
 end
 
--- פונקציה ליצירת פס גרירה (Slider)
+----------------------------------------------------
+-- 3. יצירת סליידר (פס גרירה לבחירה מ-30 עד 200)
+----------------------------------------------------
 local function createSlider(titleText, minVal, maxVal, defaultVal, positionY, onValueChange)
+	-- כותרת + הצגת מספר נבחר
 	local sliderLabel = Instance.new("TextLabel")
-	sliderLabel.Size = UDim2.new(0.86, 0, 0, 20)
+	sliderLabel.Size = UDim2.new(0.86, 0, 0, 18)
 	sliderLabel.Position = UDim2.new(0.07, 0, 0, positionY)
 	sliderLabel.Text = titleText .. ": " .. tostring(defaultVal)
 	sliderLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
@@ -119,10 +121,13 @@ local function createSlider(titleText, minVal, maxVal, defaultVal, positionY, on
 	sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
 	sliderLabel.Parent = frame
 
-	local sliderBG = Instance.new("Frame")
-	sliderBG.Size = UDim2.new(0.86, 0, 0, 10)
-	sliderBG.Position = UDim2.new(0.07, 0, 0, positionY + 22)
-	sliderBG.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	-- רקע הפס
+	local sliderBG = Instance.new("TextButton") -- משתמשים בTextButton לרגישות ללחיצות
+	sliderBG.Text = ""
+	sliderBG.AutoButtonColor = false
+	sliderBG.Size = UDim2.new(0.86, 0, 0, 12)
+	sliderBG.Position = UDim2.new(0.07, 0, 0, positionY + 20)
+	sliderBG.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 	sliderBG.BorderSizePixel = 0
 	sliderBG.Parent = frame
 
@@ -130,6 +135,7 @@ local function createSlider(titleText, minVal, maxVal, defaultVal, positionY, on
 	bgCorner.CornerRadius = UDim.new(1, 0)
 	bgCorner.Parent = sliderBG
 
+	-- פס מילוי לפי הערך
 	local fill = Instance.new("Frame")
 	local startScale = (defaultVal - minVal) / (maxVal - minVal)
 	fill.Size = UDim2.new(math.clamp(startScale, 0, 1), 0, 1, 0)
@@ -173,15 +179,18 @@ local function createSlider(titleText, minVal, maxVal, defaultVal, positionY, on
 	end)
 end
 
+----------------------------------------------------
+-- 4. פונקציית עזר ליצירת כפתורים
+----------------------------------------------------
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0.86, 0, 0, 32)
+	btn.Size = UDim2.new(0.86, 0, 0, 30)
 	btn.Position = UDim2.new(0.07, 0, 0, positionY)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(240, 240, 240)
 	btn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 	btn.BorderSizePixel = 0
-	btn.TextSize = 14
+	btn.TextSize = 13
 	btn.Font = Enum.Font.SourceSansSemibold
 	btn.Parent = frame
 
@@ -194,15 +203,15 @@ local function createButton(text, positionY, onClick)
 end
 
 ----------------------------------------------------
--- 3. יצירת פסי הגרירה (Sliders) והכפתורים
+-- 5. הוספת הרכיבים לתפריט (סליידרים + כפתורים)
 ----------------------------------------------------
--- Slider מהירות (16 עד 200)
-createSlider("⚡ מהירות (Speed)", 16, 200, 16, 45, function(val)
+-- סליידר מהירות (30 עד 200)
+createSlider("⚡ מהירות (Speed)", 30, 200, 30, 45, function(val)
 	setSpeed(val)
 end)
 
--- Slider קפיצה (30 עד 200)
-createSlider("🦘 גובה קפיצה (Jump)", 30, 200, 50, 85, function(val)
+-- סליידר קפיצה (30 עד 200)
+createSlider("🦘 גובה קפיצה (Jump)", 30, 200, 50, 90, function(val)
 	setJumpPower(val)
 end)
 
@@ -315,7 +324,7 @@ player.CharacterAdded:Connect(function(char)
 	if headlessActive then applyHeadless() end
 end)
 
--- איפוס ותאורה
+-- תאורה ואיפוס
 createButton("🌒 מצב כהה", 255, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
@@ -350,7 +359,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 4. מסך פתיחה (Intro)
+-- 6. מסך פתיחה (Intro)
 ----------------------------------------------------
 task.spawn(function()
 	local introGui = Instance.new("ScreenGui")
@@ -422,17 +431,17 @@ task.spawn(function()
 
 	task.wait(0.5)
 	subLabel.Text = "LOADING UI MODULES [25%]"
-	TweenService:Create(barFill, TweenInfo.new(1.0), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
+	TweenService:Create(barFill, TweenInfo.new(0.8), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
 
-	task.wait(1.0)
+	task.wait(0.8)
 	subLabel.Text = "INJECTING SLIDERS & COSMETICS [60%]"
-	TweenService:Create(barFill, TweenInfo.new(1.0), {Size = UDim2.new(0.60, 0, 1, 0)}):Play()
+	TweenService:Create(barFill, TweenInfo.new(0.8), {Size = UDim2.new(0.60, 0, 1, 0)}):Play()
 
-	task.wait(1.0)
+	task.wait(0.8)
 	subLabel.Text = "WELCOME, " .. player.Name:upper() .. "!"
 	TweenService:Create(barFill, TweenInfo.new(0.4), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 
-	task.wait(0.8)
+	task.wait(0.5)
 	if rgbConnection then rgbConnection:Disconnect() end
 	introGui:Destroy()
 
