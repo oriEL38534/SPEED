@@ -90,28 +90,33 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. פונקציות קוסמטיקה
+-- 2. פונקציות קוסמטיקה (תמיכה ב-R6 ו-R15)
 ----------------------------------------------------
 local function applyKorblox()
 	local char = player.Character
 	if not char then return end
 	
-	local rightLeg = char:FindFirstChild("Right Leg") or char:FindFirstChild("RightLowerLeg")
-	if rightLeg then
-		if char:FindFirstChild("Right Leg") then
-			rightLeg.MeshId = "rbxassetid://90294209"
-			rightLeg.TextureID = "rbxassetid://90284029"
-			rightLeg.Transparency = 0
-		else
-			local rightLower = char:FindFirstChild("RightLowerLeg")
-			local rightFoot = char:FindFirstChild("RightFoot")
-			if rightLower then
-				local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
-				mesh.MeshId = "rbxassetid://90294209"
-				mesh.TextureId = "rbxassetid://90284029"
-			end
-			if rightFoot then rightFoot.Transparency = 1 end
+	-- בדיקת דמות R6
+	local rightLegR6 = char:FindFirstChild("Right Leg")
+	if rightLegR6 then
+		local mesh = char:FindFirstChildOfClass("CharacterMesh")
+		if not mesh or mesh.BodyPart ~= Enum.BodyPart.RightLeg then
+			mesh = Instance.new("CharacterMesh")
+			mesh.BodyPart = Enum.BodyPart.RightLeg
+			mesh.Parent = char
 		end
+		mesh.MeshId = 90294209
+		rightLegR6.Transparency = 0
+	else
+		-- בדיקת דמות R15
+		local rightLower = char:FindFirstChild("RightLowerLeg")
+		local rightFoot = char:FindFirstChild("RightFoot")
+		if rightLower then
+			local mesh = rightLower:FindFirstChildOfClass("SpecialMesh") or Instance.new("SpecialMesh", rightLower)
+			mesh.MeshId = "rbxassetid://90294209"
+			mesh.TextureId = "rbxassetid://90284029"
+		end
+		if rightFoot then rightFoot.Transparency = 1 end
 	end
 end
 
