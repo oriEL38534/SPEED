@@ -25,7 +25,7 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- חלון רחב (460 פיקסלים ברוחב)
+-- חלון רחב מוגדל (460x360)
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 460, 0, 360)
 frame.Position = UDim2.new(0.5, -230, 0.25, 0)
@@ -41,7 +41,7 @@ frameCorner.CornerRadius = UDim.new(0, 10)
 frameCorner.Parent = frame
 
 local frameStroke = Instance.new("UIStroke")
-frameStroke.Color = Color3.fromRGB(45, 45, 60)
+frameStroke.Color = Color3.fromRGB(0, 170, 255)
 frameStroke.Thickness = 1.5
 frameStroke.Parent = frame
 
@@ -86,11 +86,6 @@ local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = toggleBtn
 
-local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(0, 170, 255)
-toggleStroke.Thickness = 1
-toggleStroke.Parent = toggleBtn
-
 local function toggleMenu()
 	frame.Visible = not frame.Visible
 end
@@ -99,7 +94,7 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. עמודות לוח הבקרה (ימין ושמאל)
+-- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
 leftCol.Size = UDim2.new(0.47, 0, 0.82, 0)
@@ -132,7 +127,7 @@ local function setJumpPower(newPower)
 end
 
 ----------------------------------------------------
--- 4. בנאי רכיבים (Sliders & Buttons)
+-- 4. בנאי Sliders & Buttons
 ----------------------------------------------------
 local function createSlider(parent, titleText, minVal, maxVal, defaultVal, positionY, onValueChange)
 	local sliderLabel = Instance.new("TextLabel")
@@ -268,7 +263,6 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- כפתור איפוס הכל בעמודה ימין
 local resetAllBtn = createButton(leftCol, "🛑 איפוס הכל", 160, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
 
