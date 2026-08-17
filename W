@@ -1,0 +1,61 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- יצירת הממשק הוויזואלי (ScreenGui)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SpeedMenuGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- יצירת המסגרת (Frame)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 220)
+frame.Position = UDim2.new(0.05, 0, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true -- מאפשר לגשת ולגרור את החלון על המסך
+frame.Parent = screenGui
+
+-- כותרת
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "תפריט מהירות"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+title.TextSize = 18
+title.Font = Enum.Font.SourceSansBold
+title.Parent = frame
+
+-- פונקציה לעדכון המהירות של השחקן
+local function setSpeed(newSpeed)
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = newSpeed
+		print("המהירות שונתה ל: " .. newSpeed)
+	end
+end
+
+-- פונקציית עזר ליצירת כפתורים
+local function createButton(text, positionY, speedValue)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.8, 0, 0, 30)
+	btn.Position = UDim2.new(0.1, 0, 0, positionY)
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+	btn.TextSize = 16
+	btn.Font = Enum.Font.SourceSans
+	btn.Parent = frame
+
+	btn.MouseButton1Click:Connect(function()
+		setSpeed(speedValue)
+	end)
+end
+
+-- יצירת הכפתורים לבחירת מהירות
+createButton("מהירות 30", 50, 30)
+createButton("מהירות 100", 90, 100)
+createButton("מהירות 200", 130, 200)
+createButton("איפוס (16)", 170, 16)
