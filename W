@@ -100,7 +100,7 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. עמודות לוח הבקרה עם UIListLayout
+-- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
 leftCol.Size = UDim2.new(0.46, 0, 0.8, 0)
@@ -329,7 +329,6 @@ btnCorner.Parent = resetPeakBtn
 ----------------------------------------------------
 -- 6. הרכבת האלמנטים בעמודות
 ----------------------------------------------------
--- עמודה שמאלית
 speedUpdateFunc = createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 1, function(val) setSpeed(val) end)
 jumpUpdateFunc = createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 2, function(val) setJumpPower(val) end)
 
