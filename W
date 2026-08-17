@@ -32,7 +32,6 @@ local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
 local eSpamActive = false
-local kpsSpamActive = false -- משתנה ל-400Hz Spam
 
 -- ערכים נוכחיים להגדרות (עבור מערכת השמירה)
 local currentSavedSpeed = 30
@@ -421,7 +420,36 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- כפתור E-Spam הישן (הוסר כדיפנות מקום ל-400Hz Spam למטה בעמודה הימנית)
+----------------------------------------------------
+-- מנגנון E-SPAM (מהיר וחזק)
+----------------------------------------------------
+local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
+
+local function setESpam(state)
+	eSpamActive = state
+	if eSpamActive then
+		eSpamBtn.Text = "✅ E-Spam: פעיל"
+		eSpamBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+		
+		task.spawn(function()
+			while eSpamActive do
+				pcall(function()
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+					task.wait(0.01)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				end)
+				RunService.RenderStepped:Wait()
+			end
+		end)
+	else
+		eSpamBtn.Text = "⚡ E-Spam: כבוי"
+		eSpamBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+eSpamBtn.MouseButton1Click:Connect(function()
+	setESpam(not eSpamActive)
+end)
 
 -- עמודה ימנית
 local function applyKorblox()
@@ -534,41 +562,11 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 end)
 
 ----------------------------------------------------
--- ⚡ 400Hz E-SPAM (במקום Anti-Lag)
-----------------------------------------------------
-local kpsBtn = createButton(rightCol, "⚡ 400Hz E-Spam: כבוי", 5, function() end)
-
-local function setKpsSpam(state)
-	kpsSpamActive = state
-	if kpsSpamActive then
-		kpsBtn.Text = "✅ 400Hz E-Spam: פעיל"
-		kpsBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-	else
-		kpsBtn.Text = "⚡ 400Hz E-Spam: כבוי"
-		kpsBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-	end
-end
-
-kpsBtn.MouseButton1Click:Connect(function()
-	setKpsSpam(not kpsSpamActive)
-end)
-
--- לולאת הרצה מהירה ברמת Heartbeat למהירות מקסימלית
-RunService.Heartbeat:Connect(function()
-	if kpsSpamActive then
-		pcall(function()
-			VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-		end)
-	end
-end)
-
-----------------------------------------------------
 -- 💾 מערכת שמירה וטעינה (Save & Load Profile)
 ----------------------------------------------------
 local fileName = "SpeedHub_Profile.json"
 
-local saveBtn = createButton(rightCol, "💾 Save Profile", 6, function()
+local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
 	local profileData = {
 		Speed = currentSavedSpeed,
 		Jump = currentSavedJump,
@@ -593,7 +591,7 @@ local saveBtn = createButton(rightCol, "💾 Save Profile", 6, function()
 end)
 saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
 
-local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 7, function()
+local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
 	if readfile and isfile and isfile(fileName) then
 		local success, decoded = pcall(function()
 			local content = readfile(fileName)
@@ -627,7 +625,7 @@ local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 7, function()
 end)
 loadProfileBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 140)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 print("LOAD: Left and right column features fully assembled.")
@@ -642,6 +640,7 @@ resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
+-- פונקציה חכמה למציאת הכדור
 local function getBall()
 	local bestBall = nil
 	local highestVelocity = 0
@@ -693,7 +692,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
-	setKpsSpam(false)
+	setESpam(false)
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -799,3 +798,5 @@ task.spawn(function()
 	frame.Visible = true
 	toggleBtn.Visible = true
 end)
+
+print("LOAD: Script successfully fully loaded and executed!")
