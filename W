@@ -5,6 +5,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 local pGui = player:WaitForChild("PlayerGui")
@@ -28,6 +29,7 @@ local invisibleActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
+local autoClickerActive = false
 
 -- ערכים נוכחיים להגדרות
 local currentSavedSpeed = 30
@@ -400,6 +402,38 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
+-- כפתור אוטו קליקר / ספאם מקש E
+local autoClickerBtn = createButton(leftCol, "🤖 Auto Clicker (E): כבוי", 6, function() end)
+
+local function setAutoClicker(state)
+	autoClickerActive = state
+	if autoClickerActive then
+		autoClickerBtn.Text = "✅ Auto Clicker (E): פעיל"
+		autoClickerBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+	else
+		autoClickerBtn.Text = "🤖 Auto Clicker (E): כבוי"
+		autoClickerBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+autoClickerBtn.MouseButton1Click:Connect(function()
+	setAutoClicker(not autoClickerActive)
+end)
+
+-- לולאה שמבצעת את הספאם במהירות 0.1 שניות
+task.spawn(function()
+	while true do
+		if autoClickerActive then
+			pcall(function()
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+				task.wait(0.02)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+			end)
+		end
+		task.wait(0.1)
+	end
+end)
+
 local function applyKorblox()
 	pcall(function()
 		local char = player.Character
@@ -595,6 +629,7 @@ end)
 
 resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
+	setAutoClicker(false)
 	setKorblox(false)
 	setHeadless(false)
 	setInvisible(false)
@@ -700,7 +735,7 @@ task.spawn(function()
 	barBackground.BorderSizePixel = 0
 	barBackground.Parent = introFrame
 
-	local barFill = Instance.new("Frame")
+	barFill = Instance.new("Frame")
 	barFill.Size = UDim2.new(0, 0, 1, 0)
 	barFill.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
 	barFill.BorderSizePixel = 0
