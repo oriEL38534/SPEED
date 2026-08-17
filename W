@@ -30,7 +30,7 @@ local darkLightingActive = false
 local lightLightingActive = false
 
 -- ערכים נוכחיים להגדרות
-local currentSavedSpeed = 20
+local currentSavedSpeed = 30
 local currentSavedJump = 50
 local currentSavedFOV = 70
 
@@ -61,7 +61,7 @@ frameStroke.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -50, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
-title.Text = "⚡ SPEED & BLADE HUB (SAFE)"
+title.Text = "⚡ SPEED & BLADE HUB"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 17
@@ -138,7 +138,7 @@ rightList.Parent = rightCol
 -- 3. פונקציות תנועה ומצלמה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
-	currentSavedSpeed = math.clamp(newSpeed, 16, 40)
+	currentSavedSpeed = math.clamp(newSpeed, 16, 200)
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
@@ -147,7 +147,7 @@ local function setSpeed(newSpeed)
 end
 
 local function setJumpPower(newPower)
-	currentSavedJump = math.clamp(newPower, 50, 100)
+	currentSavedJump = math.clamp(newPower, 50, 200)
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
@@ -343,8 +343,8 @@ btnCorner.Parent = resetPeakBtn
 ----------------------------------------------------
 -- 6. הרכבת האלמנטים בעמודות
 ----------------------------------------------------
-createSlider(leftCol, "⚡ מהירות בטוחה", 16, 40, 20, 1, function(val) setSpeed(val) end)
-createSlider(leftCol, "🦘 גובה קפיצה", 50, 100, 50, 2, function(val) setJumpPower(val) end)
+createSlider(leftCol, "⚡ מהירות", 16, 200, 30, 1, function(val) setSpeed(val) end)
+createSlider(leftCol, "🦘 גובה קפיצה", 50, 200, 50, 2, function(val) setJumpPower(val) end)
 createSlider(leftCol, "👁️ FOV", 70, 120, 70, 3, function(val) setFOV(val) end)
 
 local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 4, function() end)
@@ -610,7 +610,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 
 	restoreDefaultLighting()
 
-	speedUpdateFunc(20)
+	speedUpdateFunc(30)
 	jumpUpdateFunc(50)
 	fovUpdateFunc(70)
 	peakSpeed = 0
@@ -676,7 +676,7 @@ task.spawn(function()
 	local introLabel = Instance.new("TextLabel")
 	introLabel.Size = UDim2.new(1, 0, 0.35, 0)
 	introLabel.Position = UDim2.new(0, 0, 0.1, 0)
-	introLabel.Text = "⚡ SAFE SCRIPT ⚡"
+	introLabel.Text = "⚡ MY-SCRIPT ⚡"
 	introLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	introLabel.BackgroundTransparency = 1
 	introLabel.TextSize = 26
@@ -711,7 +711,7 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "LOADING SAFE FEATURES [75%]"
+	subLabel.Text = "LOADING MODULES [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
