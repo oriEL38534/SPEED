@@ -1,11 +1,17 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
+-- ניקוי ממשק ישן אם קיים
+local pGui = player:WaitForChild("PlayerGui")
+if pGui:FindFirstChild("SpeedMenuGui") then
+	pGui.SpeedMenuGui:Destroy()
+end
+
 -- יצירת הממשק הוויזואלי (ScreenGui)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.Parent = pGui
 
 -- יצירת המסגרת (Frame) - רקע לבן
 local frame = Instance.new("Frame")
@@ -14,18 +20,54 @@ frame.Position = UDim2.new(0.05, 0, 0.3, 0)
 frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- לבן
 frame.BorderSizePixel = 0
 frame.Active = true
-frame.Draggable = true -- מאפשר לגשת ולגרור את החלון על המסך
+frame.Draggable = true -- מאפשר לגרור את החלון
 frame.Parent = screenGui
 
 -- כותרת - לבן עם אפור בהיר
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
+title.Size = UDim2.new(1, -30, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
 title.Text = "תפריט מהירות"
 title.TextColor3 = Color3.fromRGB(0, 0, 0) -- טקסט שחור
-title.BackgroundColor3 = Color3.fromRGB(230, 230, 230) -- אפור בהיר לכותרת
+title.BackgroundColor3 = Color3.fromRGB(230, 230, 230) -- אפור בהיר
 title.TextSize = 18
 title.Font = Enum.Font.SourceSansBold
 title.Parent = frame
+
+-- כפתור סגירה (X) בחלון
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 40)
+closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(100, 100, 100)
+closeBtn.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+closeBtn.BorderSizePixel = 0
+closeBtn.TextSize = 16
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.Parent = frame
+
+-- כפתור צף להצגה/הסתרה (Toggle Button)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 80, 0, 35)
+toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
+toggleBtn.Text = "⚡ תפריט"
+toggleBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.BorderSizePixel = 1
+toggleBtn.BorderColor3 = Color3.fromRGB(200, 200, 200)
+toggleBtn.TextSize = 14
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.Active = true
+toggleBtn.Draggable = true -- אפשר להזיז גם את כפתור הפתיחה
+toggleBtn.Parent = screenGui
+
+-- לוגיקת פתיחה/סגירה
+local function toggleMenu()
+	frame.Visible = not frame.Visible
+end
+
+closeBtn.MouseButton1Click:Connect(toggleMenu)
+toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 -- פונקציה לעדכון המהירות של השחקן
 local function setSpeed(newSpeed)
@@ -37,16 +79,16 @@ local function setSpeed(newSpeed)
 	end
 end
 
--- פונקציית עזר ליצירת כפתורים בלבן/אפור בהיר
+-- פונקציית עזר ליצירת כפתורים
 local function createButton(text, positionY, speedValue)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.8, 0, 0, 30)
 	btn.Position = UDim2.new(0.1, 0, 0, positionY)
 	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(0, 0, 0) -- טקסט שחור
-	btn.BackgroundColor3 = Color3.fromRGB(240, 240, 240) -- כפתור לבן-אפור
+	btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
 	btn.BorderSizePixel = 1
-	btn.BorderColor3 = Color3.fromRGB(200, 200, 200) -- מסגרת עדינה לכפתור
+	btn.BorderColor3 = Color3.fromRGB(200, 200, 200)
 	btn.TextSize = 16
 	btn.Font = Enum.Font.SourceSans
 	btn.Parent = frame
