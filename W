@@ -14,136 +14,7 @@ if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 
 ----------------------------------------------------
--- 1. מסך פתיחה יוקרתי וארוך (6 שניות מובטחות)
-----------------------------------------------------
-local introGui = Instance.new("ScreenGui")
-introGui.Name = "ScriptIntroGui"
-introGui.ResetOnSpawn = false
-introGui.Parent = pGui
-
-local introFrame = Instance.new("Frame")
-introFrame.Size = UDim2.new(0, 340, 0, 140)
-introFrame.Position = UDim2.new(0.5, 0, 0.45, 0)
-introFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-introFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
-introFrame.BackgroundTransparency = 1
-introFrame.BorderSizePixel = 0
-introFrame.ClipsDescendants = true
-introFrame.Parent = introGui
-
-local introCorner = Instance.new("UICorner")
-introCorner.CornerRadius = UDim.new(0, 16)
-introCorner.Parent = introFrame
-
-local introStroke = Instance.new("UIStroke")
-introStroke.Color = Color3.fromRGB(0, 170, 255)
-introStroke.Thickness = 3
-introStroke.Transparency = 1
-introStroke.Parent = introFrame
-
-local introLabel = Instance.new("TextLabel")
-introLabel.Size = UDim2.new(1, 0, 0.35, 0)
-introLabel.Position = UDim2.new(0, 0, 0.1, 0)
-introLabel.Text = "⚡ MY-SCRIPT ⚡"
-introLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-introLabel.TextTransparency = 1
-introLabel.BackgroundTransparency = 1
-introLabel.TextSize = 28
-introLabel.Font = Enum.Font.GothamBold
-introLabel.Parent = introFrame
-
-local subLabel = Instance.new("TextLabel")
-subLabel.Size = UDim2.new(1, 0, 0.2, 0)
-subLabel.Position = UDim2.new(0, 0, 0.45, 0)
-subLabel.Text = "INITIALIZING..."
-subLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
-subLabel.TextTransparency = 1
-subLabel.BackgroundTransparency = 1
-subLabel.TextSize = 13
-subLabel.Font = Enum.Font.GothamMedium
-subLabel.Parent = introFrame
-
-local barBackground = Instance.new("Frame")
-barBackground.Size = UDim2.new(0.85, 0, 0, 8)
-barBackground.Position = UDim2.new(0.075, 0, 0.75, 0)
-barBackground.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
-barBackground.BackgroundTransparency = 1
-barBackground.BorderSizePixel = 0
-barBackground.Parent = introFrame
-
-local barCorner = Instance.new("UICorner")
-barCorner.CornerRadius = UDim.new(1, 0)
-barCorner.Parent = barBackground
-
-local barFill = Instance.new("Frame")
-barFill.Size = UDim2.new(0, 0, 1, 0)
-barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-barFill.BackgroundTransparency = 1
-barFill.BorderSizePixel = 0
-barFill.Parent = barBackground
-
-local fillCorner = Instance.new("UICorner")
-fillCorner.CornerRadius = UDim.new(1, 0)
-fillCorner.Parent = barFill
-
-local rgbConnection
-rgbConnection = RunService.RenderStepped:Connect(function()
-	if introGui and introGui.Parent then
-		local hue = (tick() % 3) / 3
-		introStroke.Color = Color3.fromHSV(hue, 0.8, 1)
-		barFill.BackgroundColor3 = Color3.fromHSV(hue, 0.8, 1)
-	else
-		if rgbConnection then rgbConnection:Disconnect() end
-	end
-end)
-
-local openTween = TweenService:Create(introFrame, TweenInfo.new(1.0, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 0.05})
-local strokeFade = TweenService:Create(introStroke, TweenInfo.new(0.6), {Transparency = 0})
-local textFade = TweenService:Create(introLabel, TweenInfo.new(0.6), {TextTransparency = 0})
-local subFade = TweenService:Create(subLabel, TweenInfo.new(0.6), {TextTransparency = 0})
-local barBgFade = TweenService:Create(barBackground, TweenInfo.new(0.6), {BackgroundTransparency = 0.3})
-local barFillFade = TweenService:Create(barFill, TweenInfo.new(0.6), {BackgroundTransparency = 0})
-
-openTween:Play()
-strokeFade:Play()
-textFade:Play()
-subFade:Play()
-barBgFade:Play()
-barFillFade:Play()
-
-task.wait(0.8)
-subLabel.Text = "LOADING UI MODULES [25%]"
-TweenService:Create(barFill, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
-
-task.wait(1.5)
-subLabel.Text = "INJECTING GRAPHICS & COSMETICS [60%]"
-TweenService:Create(barFill, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {Size = UDim2.new(0.60, 0, 1, 0)}):Play()
-
-task.wait(1.5)
-subLabel.Text = "FINALIZING SYSTEM [95%]"
-TweenService:Create(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Size = UDim2.new(0.95, 0, 1, 0)}):Play()
-
-task.wait(1.2)
-subLabel.Text = "WELCOME, " .. player.Name:upper() .. "!"
-TweenService:Create(barFill, TweenInfo.new(0.5), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-
-task.wait(1.0)
-
-local closeTween = TweenService:Create(introFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {BackgroundTransparency = 1})
-TweenService:Create(introStroke, TweenInfo.new(0.5), {Transparency = 1}):Play()
-TweenService:Create(introLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
-TweenService:Create(subLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
-TweenService:Create(barBackground, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-
-closeTween:Play()
-closeTween.Completed:Wait()
-
-if rgbConnection then rgbConnection:Disconnect() end
-introGui:Destroy()
-
-----------------------------------------------------
--- 2. יצירת התפריט הראשי (גודל מותאם לחלוטין)
+-- 1. יצירת הממשק הראשי (מוסתר בהתחלה)
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
@@ -156,7 +27,6 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
--- חלון מוגדל (גובה 520) כדי להכיל את כל הכפתורים בצורה מרווחת
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 220, 0, 520)
 frame.Position = UDim2.new(0.05, 0, 0.1, 0)
@@ -165,6 +35,7 @@ frame.BorderSizePixel = 1
 frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 frame.Active = true
 frame.Draggable = true
+frame.Visible = false -- מוסתר עד סיום ההנפשה
 frame.Parent = screenGui
 
 local frameCorner = Instance.new("UICorner")
@@ -204,6 +75,7 @@ toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
 toggleBtn.Draggable = true
+toggleBtn.Visible = false -- מוסתר עד סיום ההנפשה
 toggleBtn.Parent = screenGui
 
 local toggleCorner = Instance.new("UICorner")
@@ -218,7 +90,7 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 3. פונקציות קוסמטיקה (Client-Side Only)
+-- 2. פונקציות קוסמטיקה
 ----------------------------------------------------
 local function applyKorblox()
 	local char = player.Character
@@ -263,7 +135,7 @@ player.CharacterAdded:Connect(function(char)
 end)
 
 ----------------------------------------------------
--- 4. כפתורים ופונקציות תפריט
+-- 3. כפתורים ופונקציות תפריט
 ----------------------------------------------------
 local function setSpeed(newSpeed)
 	local character = player.Character or player.CharacterAdded:Wait()
@@ -342,7 +214,6 @@ local function applyBlackAura()
 	end
 end
 
--- סידור הכפתורים (כל כפתור במרחק 40 פיקסלים)
 createButton("מהירות 30", 45, function() setSpeed(30) end)
 createButton("מהירות 100", 85, function() setSpeed(100) end)
 createButton("מהירות 200", 125, function() setSpeed(200) end)
@@ -383,7 +254,6 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- כפתורי Korblox ו-Headless 
 local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 205, function() end)
 korbloxBtn.MouseButton1Click:Connect(function()
 	korbloxActive = not korbloxActive
@@ -452,4 +322,111 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	headlessBtn.Text = "💀 Headless: כבוי"
 	headlessBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 	setSpeed(16)
+end)
+
+----------------------------------------------------
+-- 4. מסך פתיחה מונהג ברקע נפרד (Task Spawn)
+----------------------------------------------------
+task.spawn(function()
+	local introGui = Instance.new("ScreenGui")
+	introGui.Name = "ScriptIntroGui"
+	introGui.ResetOnSpawn = false
+	introGui.Parent = pGui
+
+	local introFrame = Instance.new("Frame")
+	introFrame.Size = UDim2.new(0, 340, 0, 140)
+	introFrame.Position = UDim2.new(0.5, 0, 0.45, 0)
+	introFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	introFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+	introFrame.BackgroundTransparency = 0.05
+	introFrame.BorderSizePixel = 0
+	introFrame.ClipsDescendants = true
+	introFrame.Parent = introGui
+
+	local introCorner = Instance.new("UICorner")
+	introCorner.CornerRadius = UDim.new(0, 16)
+	introCorner.Parent = introFrame
+
+	local introStroke = Instance.new("UIStroke")
+	introStroke.Color = Color3.fromRGB(0, 170, 255)
+	introStroke.Thickness = 3
+	introStroke.Parent = introFrame
+
+	local introLabel = Instance.new("TextLabel")
+	introLabel.Size = UDim2.new(1, 0, 0.35, 0)
+	introLabel.Position = UDim2.new(0, 0, 0.1, 0)
+	introLabel.Text = "⚡ MY-SCRIPT ⚡"
+	introLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	introLabel.BackgroundTransparency = 1
+	introLabel.TextSize = 28
+	introLabel.Font = Enum.Font.GothamBold
+	introLabel.Parent = introFrame
+
+	local subLabel = Instance.new("TextLabel")
+	subLabel.Size = UDim2.new(1, 0, 0.2, 0)
+	subLabel.Position = UDim2.new(0, 0, 0.45, 0)
+	subLabel.Text = "INITIALIZING..."
+	subLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+	subLabel.BackgroundTransparency = 1
+	subLabel.TextSize = 13
+	subLabel.Font = Enum.Font.GothamMedium
+	subLabel.Parent = introFrame
+
+	local barBackground = Instance.new("Frame")
+	barBackground.Size = UDim2.new(0.85, 0, 0, 8)
+	barBackground.Position = UDim2.new(0.075, 0, 0.75, 0)
+	barBackground.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+	barBackground.BorderSizePixel = 0
+	barBackground.Parent = introFrame
+
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(1, 0)
+	barCorner.Parent = barBackground
+
+	local barFill = Instance.new("Frame")
+	barFill.Size = UDim2.new(0, 0, 1, 0)
+	barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+	barFill.BorderSizePixel = 0
+	barFill.Parent = barBackground
+
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(1, 0)
+	fillCorner.Parent = barFill
+
+	local rgbConnection
+	rgbConnection = RunService.RenderStepped:Connect(function()
+		if introGui and introGui.Parent then
+			local hue = (tick() % 3) / 3
+			introStroke.Color = Color3.fromHSV(hue, 0.8, 1)
+			barFill.BackgroundColor3 = Color3.fromHSV(hue, 0.8, 1)
+		else
+			if rgbConnection then rgbConnection:Disconnect() end
+		end
+	end)
+
+	-- שלבי הטעינה
+	task.wait(0.5)
+	subLabel.Text = "LOADING UI MODULES [25%]"
+	TweenService:Create(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
+
+	task.wait(1.2)
+	subLabel.Text = "INJECTING GRAPHICS & COSMETICS [60%]"
+	TweenService:Create(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Size = UDim2.new(0.60, 0, 1, 0)}):Play()
+
+	task.wait(1.2)
+	subLabel.Text = "FINALIZING SYSTEM [95%]"
+	TweenService:Create(barFill, TweenInfo.new(1.0, Enum.EasingStyle.Sine), {Size = UDim2.new(0.95, 0, 1, 0)}):Play()
+
+	task.wait(1.0)
+	subLabel.Text = "WELCOME, " .. player.Name:upper() .. "!"
+	TweenService:Create(barFill, TweenInfo.new(0.4), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+
+	task.wait(0.8)
+
+	if rgbConnection then rgbConnection:Disconnect() end
+	introGui:Destroy()
+
+	-- הצגת התפריט באופן ודאי
+	frame.Visible = true
+	toggleBtn.Visible = true
 end)
