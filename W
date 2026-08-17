@@ -14,13 +14,12 @@ if pGui:FindFirstChild("ScriptIntroGui") then pGui.ScriptIntroGui:Destroy() end
 if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 
 ----------------------------------------------------
--- 1. יצירת הממשק הראשי (מוסתר בהתחלה)
+-- 1. יצירת הממשק הראשי
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
 local headlessActive = false
 local highlightsFolder = nil
-local createdLight = nil
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
@@ -28,7 +27,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 640) -- הגדלת גובה התפריט עבור כפתורי הקפיצה
+frame.Size = UDim2.new(0, 230, 0, 560)
 frame.Position = UDim2.new(0.05, 0, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 frame.BorderSizePixel = 1
@@ -90,13 +89,163 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 ----------------------------------------------------
--- 2. פונקציות קוסמטיקה
+-- 2. פונקציות עזר לבניית רכיבים ו-Slider
 ----------------------------------------------------
+local function setSpeed(newSpeed)
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then hum.WalkSpeed = newSpeed end
+end
+
+local function setJumpPower(newPower)
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.UseJumpPower = true
+		hum.JumpPower = newPower
+	end
+end
+
+-- פונקציה ליצירת פס גרירה (Slider)
+local function createSlider(titleText, minVal, maxVal, defaultVal, positionY, onValueChange)
+	local sliderLabel = Instance.new("TextLabel")
+	sliderLabel.Size = UDim2.new(0.86, 0, 0, 20)
+	sliderLabel.Position = UDim2.new(0.07, 0, 0, positionY)
+	sliderLabel.Text = titleText .. ": " .. tostring(defaultVal)
+	sliderLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+	sliderLabel.BackgroundTransparency = 1
+	sliderLabel.TextSize = 13
+	sliderLabel.Font = Enum.Font.SourceSansSemibold
+	sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+	sliderLabel.Parent = frame
+
+	local sliderBG = Instance.new("Frame")
+	sliderBG.Size = UDim2.new(0.86, 0, 0, 10)
+	sliderBG.Position = UDim2.new(0.07, 0, 0, positionY + 22)
+	sliderBG.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	sliderBG.BorderSizePixel = 0
+	sliderBG.Parent = frame
+
+	local bgCorner = Instance.new("UICorner")
+	bgCorner.CornerRadius = UDim.new(1, 0)
+	bgCorner.Parent = sliderBG
+
+	local fill = Instance.new("Frame")
+	local startScale = (defaultVal - minVal) / (maxVal - minVal)
+	fill.Size = UDim2.new(math.clamp(startScale, 0, 1), 0, 1, 0)
+	fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+	fill.BorderSizePixel = 0
+	fill.Parent = sliderBG
+
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(1, 0)
+	fillCorner.Parent = fill
+
+	local isDragging = false
+
+	local function updateValue(input)
+		local posX = input.Position.X - sliderBG.AbsolutePosition.X
+		local scale = math.clamp(posX / sliderBG.AbsoluteSize.X, 0, 1)
+		fill.Size = UDim2.new(scale, 0, 1, 0)
+		
+		local val = math.floor(minVal + (scale * (maxVal - minVal)))
+		sliderLabel.Text = titleText .. ": " .. tostring(val)
+		onValueChange(val)
+	end
+
+	sliderBG.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = true
+			updateValue(input)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = false
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			updateValue(input)
+		end
+	end)
+end
+
+local function createButton(text, positionY, onClick)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.86, 0, 0, 32)
+	btn.Position = UDim2.new(0.07, 0, 0, positionY)
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(240, 240, 240)
+	btn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+	btn.BorderSizePixel = 0
+	btn.TextSize = 14
+	btn.Font = Enum.Font.SourceSansSemibold
+	btn.Parent = frame
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 5)
+	btnCorner.Parent = btn
+
+	btn.MouseButton1Click:Connect(function() onClick(btn) end)
+	return btn
+end
+
+----------------------------------------------------
+-- 3. יצירת פסי הגרירה (Sliders) והכפתורים
+----------------------------------------------------
+-- Slider מהירות (16 עד 200)
+createSlider("⚡ מהירות (Speed)", 16, 200, 16, 45, function(val)
+	setSpeed(val)
+end)
+
+-- Slider קפיצה (30 עד 200)
+createSlider("🦘 גובה קפיצה (Jump)", 30, 200, 50, 85, function(val)
+	setJumpPower(val)
+end)
+
+-- Infinite Jump
+local infJumpBtn = createButton("♾️ Infinite Jump: כבוי", 135, function() end)
+
+local ACTION_NAME = "InfJumpAction"
+
+local function handleJumpAction(actionName, inputState, inputObject)
+	if inputState == Enum.UserInputState.Begin and infJumpActive then
+		local char = player.Character
+		if char then
+			local hum = char:FindFirstChildOfClass("Humanoid")
+			if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+		end
+	end
+	return Enum.ContextAnimationFrame.Pass
+end
+
+local function disableInfJump()
+	infJumpActive = false
+	ContextActionService:UnbindAction(ACTION_NAME)
+	infJumpBtn.Text = "♾️ Infinite Jump: כבוי"
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+end
+
+local function enableInfJump()
+	disableInfJump()
+	infJumpActive = true
+	ContextActionService:BindAction(ACTION_NAME, handleJumpAction, false, Enum.KeyCode.Space)
+	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
+	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+end
+
+infJumpBtn.MouseButton1Click:Connect(function()
+	if infJumpActive then disableInfJump() else enableInfJump() end
+end)
+
+-- קוסמטיקה
 local function applyKorblox()
 	pcall(function()
 		local char = player.Character
 		if not char then return end
-		
 		local rightLegR6 = char:FindFirstChild("Right Leg")
 		if rightLegR6 then
 			local mesh = char:FindFirstChildOfClass("CharacterMesh")
@@ -124,7 +273,6 @@ local function applyHeadless()
 	pcall(function()
 		local char = player.Character
 		if not char then return end
-		
 		local head = char:FindFirstChild("Head")
 		if head then
 			head.Transparency = 1
@@ -134,151 +282,7 @@ local function applyHeadless()
 	end)
 end
 
-player.CharacterAdded:Connect(function(char)
-	char:WaitForChild("Humanoid")
-	task.wait(0.5)
-	if korbloxActive then applyKorblox() end
-	if headlessActive then applyHeadless() end
-end)
-
-----------------------------------------------------
--- 3. כפתורים ופונקציות תפריט
-----------------------------------------------------
-local function setSpeed(newSpeed)
-	local character = player.Character or player.CharacterAdded:Wait()
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if humanoid then humanoid.WalkSpeed = newSpeed end
-end
-
-local function setJumpPower(newPower)
-	local character = player.Character or player.CharacterAdded:Wait()
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.UseJumpPower = true
-		humanoid.JumpPower = newPower
-	end
-end
-
-local function createButton(text, positionY, onClick)
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0.86, 0, 0, 32)
-	btn.Position = UDim2.new(0.07, 0, 0, positionY)
-	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(240, 240, 240)
-	btn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-	btn.BorderSizePixel = 0
-	btn.TextSize = 14
-	btn.Font = Enum.Font.SourceSansSemibold
-	btn.Parent = frame
-
-	local btnCorner = Instance.new("UICorner")
-	btnCorner.CornerRadius = UDim.new(0, 5)
-	btnCorner.Parent = btn
-
-	btn.MouseButton1Click:Connect(function() onClick(btn) end)
-	return btn
-end
-
-local function removeHighlights()
-	if highlightsFolder then highlightsFolder:Destroy() highlightsFolder = nil end
-	if createdLight then createdLight:Destroy() createdLight = nil end
-	for _, obj in ipairs(Workspace:GetDescendants()) do
-		if obj:IsA("Highlight") and (obj.Name == "BallSuperGlow" or obj.Name:find("_Glow") or obj.Name:find("_BlackAura")) then
-			obj:Destroy()
-		end
-		if obj:IsA("PointLight") and obj.Name == "BallLight" then obj:Destroy() end
-	end
-end
-
-local function applyDarkHighlights()
-	removeHighlights()
-	highlightsFolder = Instance.new("Folder")
-	highlightsFolder.Name = "GlowHighlights"
-	highlightsFolder.Parent = Workspace
-
-	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= player and plr.Character then
-			local plrHighlight = Instance.new("Highlight")
-			plrHighlight.Name = plr.Name .. "_Glow"
-			plrHighlight.FillColor = Color3.fromRGB(0, 180, 255)
-			plrHighlight.FillTransparency = 0.5
-			plrHighlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-			plrHighlight.OutlineTransparency = 0
-			plrHighlight.Parent = highlightsFolder
-			plrHighlight.Adornee = plr.Character
-		end
-	end
-end
-
-local function applyBlackAura()
-	removeHighlights()
-	highlightsFolder = Instance.new("Folder")
-	highlightsFolder.Name = "BlackAuraHighlights"
-	highlightsFolder.Parent = Workspace
-
-	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= player and plr.Character then
-			local blackHighlight = Instance.new("Highlight")
-			blackHighlight.Name = plr.Name .. "_BlackAura"
-			blackHighlight.FillColor = Color3.fromRGB(0, 0, 0)
-			blackHighlight.FillTransparency = 0.05
-			blackHighlight.OutlineColor = Color3.fromRGB(0, 0, 0)
-			blackHighlight.OutlineTransparency = 0
-			blackHighlight.Parent = highlightsFolder
-			blackHighlight.Adornee = plr.Character
-		end
-	end
-end
-
--- מהירות
-createButton("מהירות 30", 45, function() setSpeed(30) end)
-createButton("מהירות 100", 85, function() setSpeed(100) end)
-createButton("מהירות 200", 125, function() setSpeed(200) end)
-
--- גובה קפיצה (30 עד 200)
-createButton("🦘 קפיצה 30", 165, function() setJumpPower(30) end)
-createButton("🦘 קפיצה 80", 205, function() setJumpPower(80) end)
-createButton("🦘 קפיצה 200", 245, function() setJumpPower(200) end)
-
--- Infinite Jump
-local infJumpBtn = createButton("♾️ Infinite Jump: כבוי", 285, function() end)
-
-local ACTION_NAME = "InfJumpAction"
-
-local function handleJumpAction(actionName, inputState, inputObject)
-	if inputState == Enum.UserInputState.Begin then
-		if infJumpActive then
-			local char = player.Character
-			if char then
-				local hum = char:FindFirstChildOfClass("Humanoid")
-				if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-			end
-		end
-	end
-	return Enum.ContextAnimationFrame.Pass
-end
-
-local function disableInfJump()
-	infJumpActive = false
-	ContextActionService:UnbindAction(ACTION_NAME)
-	infJumpBtn.Text = "♾️ Infinite Jump: כבוי"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-end
-
-local function enableInfJump()
-	disableInfJump()
-	infJumpActive = true
-	ContextActionService:BindAction(ACTION_NAME, handleJumpAction, false, Enum.KeyCode.Space)
-	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
-end
-
-infJumpBtn.MouseButton1Click:Connect(function()
-	if infJumpActive then disableInfJump() else enableInfJump() end
-end)
-
--- קוסמטיקה
-local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 325, function() end)
+local korbloxBtn = createButton("🦵 Korblox Leg: כבוי", 175, function() end)
 korbloxBtn.MouseButton1Click:Connect(function()
 	korbloxActive = not korbloxActive
 	if korbloxActive then
@@ -291,7 +295,7 @@ korbloxBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local headlessBtn = createButton("💀 Headless: כבוי", 365, function() end)
+local headlessBtn = createButton("💀 Headless: כבוי", 215, function() end)
 headlessBtn.MouseButton1Click:Connect(function()
 	headlessActive = not headlessActive
 	if headlessActive then
@@ -304,41 +308,36 @@ headlessBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- תאורה ואיפוס
-createButton("🌒 מצב כהה", 405, function()
+player.CharacterAdded:Connect(function(char)
+	char:WaitForChild("Humanoid")
+	task.wait(0.5)
+	if korbloxActive then applyKorblox() end
+	if headlessActive then applyHeadless() end
+end)
+
+-- איפוס ותאורה
+createButton("🌒 מצב כהה", 255, function()
 	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
-	Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 90)
-	Lighting.Ambient = Color3.fromRGB(60, 60, 80)
-	applyDarkHighlights()
 end)
 
-createButton("☀️ מצב בהיר", 445, function()
+createButton("☀️ מצב בהיר", 295, function()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
-	Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
-	Lighting.Ambient = Color3.fromRGB(255, 255, 255)
-	Lighting.FogEnd = 100000
-	applyBlackAura()
 end)
 
-createButton("🔄 החזר גרפיקה לרגיל", 485, function()
-	removeHighlights()
+createButton("🔄 החזר גרפיקה לרגיל", 335, function()
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2
 	Lighting.GlobalShadows = true
-	Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-	Lighting.Ambient = Color3.fromRGB(70, 70, 70)
-	Lighting.FogEnd = 10000
 end)
 
-local resetAllBtn = createButton("🛑 איפוס הכל", 525, function() end)
+local resetAllBtn = createButton("🛑 איפוס הכל", 375, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(130, 35, 35)
 
 resetAllBtn.MouseButton1Click:Connect(function()
-	removeHighlights()
 	disableInfJump()
 	korbloxActive = false
 	headlessActive = false
@@ -347,11 +346,11 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	headlessBtn.Text = "💀 Headless: כבוי"
 	headlessBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 	setSpeed(16)
-	setJumpPower(50) -- איפוס גובה קפיצה לברירת מחדל
+	setJumpPower(50)
 end)
 
 ----------------------------------------------------
--- 4. מסך פתיחה מונהג ברקע נפרד (Task Spawn)
+-- 4. מסך פתיחה (Intro)
 ----------------------------------------------------
 task.spawn(function()
 	local introGui = Instance.new("ScreenGui")
@@ -364,7 +363,6 @@ task.spawn(function()
 	introFrame.Position = UDim2.new(0.5, 0, 0.45, 0)
 	introFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 	introFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
-	introFrame.BackgroundTransparency = 0.05
 	introFrame.BorderSizePixel = 0
 	introFrame.ClipsDescendants = true
 	introFrame.Parent = introGui
@@ -405,19 +403,11 @@ task.spawn(function()
 	barBackground.BorderSizePixel = 0
 	barBackground.Parent = introFrame
 
-	local barCorner = Instance.new("UICorner")
-	barCorner.CornerRadius = UDim.new(1, 0)
-	barCorner.Parent = barBackground
-
 	local barFill = Instance.new("Frame")
 	barFill.Size = UDim2.new(0, 0, 1, 0)
 	barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 	barFill.BorderSizePixel = 0
 	barFill.Parent = barBackground
-
-	local fillCorner = Instance.new("UICorner")
-	fillCorner.CornerRadius = UDim.new(1, 0)
-	fillCorner.Parent = barFill
 
 	local rgbConnection
 	rgbConnection = RunService.RenderStepped:Connect(function()
@@ -430,29 +420,22 @@ task.spawn(function()
 		end
 	end)
 
-	-- שלבי הטעינה
 	task.wait(0.5)
 	subLabel.Text = "LOADING UI MODULES [25%]"
-	TweenService:Create(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
+	TweenService:Create(barFill, TweenInfo.new(1.0), {Size = UDim2.new(0.25, 0, 1, 0)}):Play()
 
-	task.wait(1.2)
-	subLabel.Text = "INJECTING GRAPHICS & COSMETICS [60%]"
-	TweenService:Create(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Size = UDim2.new(0.60, 0, 1, 0)}):Play()
-
-	task.wait(1.2)
-	subLabel.Text = "FINALIZING SYSTEM [95%]"
-	TweenService:Create(barFill, TweenInfo.new(1.0, Enum.EasingStyle.Sine), {Size = UDim2.new(0.95, 0, 1, 0)}):Play()
+	task.wait(1.0)
+	subLabel.Text = "INJECTING SLIDERS & COSMETICS [60%]"
+	TweenService:Create(barFill, TweenInfo.new(1.0), {Size = UDim2.new(0.60, 0, 1, 0)}):Play()
 
 	task.wait(1.0)
 	subLabel.Text = "WELCOME, " .. player.Name:upper() .. "!"
 	TweenService:Create(barFill, TweenInfo.new(0.4), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 
 	task.wait(0.8)
-
 	if rgbConnection then rgbConnection:Disconnect() end
 	introGui:Destroy()
 
-	-- הצגת התפריט
 	frame.Visible = true
 	toggleBtn.Visible = true
 end)
