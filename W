@@ -15,12 +15,28 @@ if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
 
 ----------------------------------------------------
--- 1. יצירת הממשק הראשי (עם שילוב לבן)
+-- 1. משתנים גלובליים ושמירת הגדרות (Save/Load)
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
 local headlessActive = false
 local ballStatsActive = false
+local darkLightingActive = false
+local lightLightingActive = false
+
+local currentSpeedVal = 30
+local currentJumpVal = 50
+
+local savedData = {
+	speed = 30,
+	jump = 50,
+	infJump = false,
+	korblox = false,
+	headless = false,
+	ballStats = false,
+	darkLighting = false,
+	lightLighting = false
+}
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
@@ -28,8 +44,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 380)
-frame.Position = UDim2.new(0.5, -240, 0.25, 0)
+frame.Size = UDim2.new(0, 500, 0, 420)
+frame.Position = UDim2.new(0.5, -250, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 20, 30)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -41,7 +57,6 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 10)
 frameCorner.Parent = frame
 
--- מסגרת לבנה עדינה ונקייה
 local frameStroke = Instance.new("UIStroke")
 frameStroke.Color = Color3.fromRGB(240, 240, 255)
 frameStroke.Thickness = 1.8
@@ -51,7 +66,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -50, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
 title.Text = "⚡ SPEED & BLADE HUB"
-title.TextColor3 = Color3.fromRGB(255, 255, 255) -- לבן בוהק
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 17
 title.Font = Enum.Font.GothamBold
@@ -87,7 +102,7 @@ toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = toggleBtn
 
 local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(255, 255, 255) -- מסגרת לבנה למתג הצדדי
+toggleStroke.Color = Color3.fromRGB(255, 255, 255)
 toggleStroke.Thickness = 1.5
 toggleStroke.Parent = toggleBtn
 
@@ -102,24 +117,24 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה עם UIListLayout
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.8, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.15, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.84, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.12, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
 local leftList = Instance.new("UIListLayout")
-leftList.Padding = UDim.new(0, 10)
+leftList.Padding = UDim.new(0, 8)
 leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.8, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.15, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.84, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.12, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
 local rightList = Instance.new("UIListLayout")
-rightList.Padding = UDim.new(0, 10)
+rightList.Padding = UDim.new(0, 8)
 rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
@@ -127,12 +142,14 @@ rightList.Parent = rightCol
 -- 3. פונקציות תנועה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
+	currentSpeedVal = newSpeed
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then hum.WalkSpeed = newSpeed end
 end
 
 local function setJumpPower(newPower)
+	currentJumpVal = newPower
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then
@@ -144,6 +161,8 @@ end
 ----------------------------------------------------
 -- 4. בנאי Sliders & Buttons
 ----------------------------------------------------
+local speedUpdateFunc, jumpUpdateFunc
+
 local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layoutOrder, onValueChange)
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(1, 0, 0, 42)
@@ -155,7 +174,7 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 	sliderLabel.Size = UDim2.new(1, 0, 0, 18)
 	sliderLabel.Position = UDim2.new(0, 0, 0, 0)
 	sliderLabel.Text = titleText .. ": " .. tostring(defaultVal)
-	sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- טקסט לבן נקי
+	sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	sliderLabel.BackgroundTransparency = 1
 	sliderLabel.TextSize = 13
 	sliderLabel.Font = Enum.Font.GothamMedium
@@ -178,7 +197,7 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 	local fill = Instance.new("Frame")
 	local startScale = (defaultVal - minVal) / (maxVal - minVal)
 	fill.Size = UDim2.new(math.clamp(startScale, 0, 1), 0, 1, 0)
-	fill.BackgroundColor3 = Color3.fromRGB(230, 230, 250) -- מד סליידר בלבן-כסוף
+	fill.BackgroundColor3 = Color3.fromRGB(230, 230, 250)
 	fill.BorderSizePixel = 0
 	fill.Parent = sliderBG
 
@@ -187,6 +206,14 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 	fillCorner.Parent = fill
 
 	local isDragging = false
+
+	local function setDirectValue(val)
+		val = math.clamp(val, minVal, maxVal)
+		local scale = (val - minVal) / (maxVal - minVal)
+		fill.Size = UDim2.new(scale, 0, 1, 0)
+		sliderLabel.Text = titleText .. ": " .. tostring(val)
+		onValueChange(val)
+	end
 
 	local function updateValue(input)
 		local posX = input.Position.X - sliderBG.AbsolutePosition.X
@@ -216,11 +243,13 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 			updateValue(input)
 		end
 	end)
+
+	return setDirectValue
 end
 
 local function createButton(parent, text, layoutOrder, onClick)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 34)
+	btn.Size = UDim2.new(1, 0, 0, 32)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -234,7 +263,6 @@ local function createButton(parent, text, layoutOrder, onClick)
 	btnCorner.CornerRadius = UDim.new(0, 6)
 	btnCorner.Parent = btn
 
-	-- מסגרות לבנות עדינות לכפתורים
 	local btnStroke = Instance.new("UIStroke")
 	btnStroke.Color = Color3.fromRGB(180, 180, 210)
 	btnStroke.Thickness = 1
@@ -245,7 +273,7 @@ local function createButton(parent, text, layoutOrder, onClick)
 end
 
 ----------------------------------------------------
--- 5. חלונית BALL STATS הנפרדת
+-- 5. חלונית BALL STATS
 ----------------------------------------------------
 local ballStatsGui = Instance.new("ScreenGui")
 ballStatsGui.Name = "BallStatsGui"
@@ -267,7 +295,7 @@ statsCorner.CornerRadius = UDim.new(0, 8)
 statsCorner.Parent = statsFrame
 
 local statsStroke = Instance.new("UIStroke")
-statsStroke.Color = Color3.fromRGB(255, 255, 255) -- מסגרת לבנה בוהקת
+statsStroke.Color = Color3.fromRGB(255, 255, 255)
 statsStroke.Thickness = 1.5
 statsStroke.Parent = statsFrame
 
@@ -320,11 +348,11 @@ btnCorner.CornerRadius = UDim.new(0, 4)
 btnCorner.Parent = resetPeakBtn
 
 ----------------------------------------------------
--- 6. הוספת רכיבים לפי סדר לעמודות
+-- 6. הרכבת האלמנטים בעמודות
 ----------------------------------------------------
 -- עמודה שמאלית
-createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 1, function(val) setSpeed(val) end)
-createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 2, function(val) setJumpPower(val) end)
+speedUpdateFunc = createSlider(leftCol, "⚡ מהירות", 30, 200, 30, 1, function(val) setSpeed(val) end)
+jumpUpdateFunc = createSlider(leftCol, "🦘 גובה קפיצה", 30, 200, 50, 2, function(val) setJumpPower(val) end)
 
 local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 3, function() end)
 
@@ -360,11 +388,10 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- מתג BALL STATS
 local ballStatsBtn = createButton(leftCol, "⚔️ Ball Stats: כבוי", 4, function() end)
 
-ballStatsBtn.MouseButton1Click:Connect(function()
-	ballStatsActive = not ballStatsActive
+local function setBallStats(state)
+	ballStatsActive = state
 	if ballStatsActive then
 		ballStatsBtn.Text = "✅ Ball Stats: פעיל"
 		ballStatsBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
@@ -374,6 +401,10 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 		ballStatsBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 		statsFrame.Visible = false
 	end
+end
+
+ballStatsBtn.MouseButton1Click:Connect(function()
+	setBallStats(not ballStatsActive)
 end)
 
 -- עמודה ימנית
@@ -406,8 +437,8 @@ local function applyHeadless()
 end
 
 local korbloxBtn = createButton(rightCol, "🦵 Korblox Leg: כבוי", 1, function() end)
-korbloxBtn.MouseButton1Click:Connect(function()
-	korbloxActive = not korbloxActive
+local function setKorblox(state)
+	korbloxActive = state
 	if korbloxActive then
 		korbloxBtn.Text = "✅ Korblox Leg: פעיל"
 		korbloxBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
@@ -416,11 +447,12 @@ korbloxBtn.MouseButton1Click:Connect(function()
 		korbloxBtn.Text = "🦵 Korblox Leg: כבוי"
 		korbloxBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	end
-end)
+end
+korbloxBtn.MouseButton1Click:Connect(function() setKorblox(not korbloxActive) end)
 
 local headlessBtn = createButton(rightCol, "💀 Headless: כבוי", 2, function() end)
-headlessBtn.MouseButton1Click:Connect(function()
-	headlessActive = not headlessActive
+local function setHeadless(state)
+	headlessActive = state
 	if headlessActive then
 		headlessBtn.Text = "✅ Headless: פעיל"
 		headlessBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
@@ -429,25 +461,97 @@ headlessBtn.MouseButton1Click:Connect(function()
 		headlessBtn.Text = "💀 Headless: כבוי"
 		headlessBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	end
+end
+headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
+
+----------------------------------------------------
+-- כפתורי גרפיקה עם מצבי וי (✅ פעיל / כבוי)
+----------------------------------------------------
+local darkBtn, lightBtn
+
+local function setDarkLighting(state)
+	darkLightingActive = state
+	if darkLightingActive then
+		darkBtn.Text = "✅ מצב כהה: פעיל"
+		darkBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+		Lighting.ClockTime = 20
+		Lighting.Brightness = 1.2
+		Lighting.GlobalShadows = true
+	else
+		darkBtn.Text = "🌒 מצב כהה: כבוי"
+		darkBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+local function setLightLighting(state)
+	lightLightingActive = state
+	if lightLightingActive then
+		lightBtn.Text = "✅ מצב בהיר: פעיל"
+		lightBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+		Lighting.ClockTime = 14
+		Lighting.Brightness = 3
+		Lighting.GlobalShadows = false
+	else
+		lightBtn.Text = "☀️ מצב בהיר: כבוי"
+		lightBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
+	if lightLightingActive then setLightLighting(false) end
+	setDarkLighting(not darkLightingActive)
 end)
 
-createButton(rightCol, "🌒 מצב כהה", 3, function()
-	Lighting.ClockTime = 20
-	Lighting.Brightness = 1.2
-	Lighting.GlobalShadows = true
+lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, function()
+	if darkLightingActive then setDarkLighting(false) end
+	setLightLighting(not lightLightingActive)
 end)
 
-createButton(rightCol, "☀️ מצב בהיר", 4, function()
-	Lighting.ClockTime = 14
-	Lighting.Brightness = 3
-	Lighting.GlobalShadows = false
+----------------------------------------------------
+-- כפתורי SAVE / LOAD
+----------------------------------------------------
+local saveBtn = createButton(rightCol, "💾 שמירת הגדרות (Save)", 5, function(btn)
+	savedData.speed = currentSpeedVal
+	savedData.jump = currentJumpVal
+	savedData.infJump = infJumpActive
+	savedData.korblox = korbloxActive
+	savedData.headless = headlessActive
+	savedData.ballStats = ballStatsActive
+	savedData.darkLighting = darkLightingActive
+	savedData.lightLighting = lightLightingActive
+
+	local origText = btn.Text
+	btn.Text = "✅ נשמר בהצלחה!"
+	btn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+	task.wait(1.2)
+	btn.Text = origText
+	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
+local loadBtn = createButton(rightCol, "📂 טעינת הגדרות (Load)", 6, function(btn)
+	speedUpdateFunc(savedData.speed)
+	jumpUpdateFunc(savedData.jump)
+	
+	if savedData.infJump then enableInfJump() else disableInfJump() end
+	setKorblox(savedData.korblox)
+	setHeadless(savedData.headless)
+	setBallStats(savedData.ballStats)
+	setDarkLighting(savedData.darkLighting)
+	setLightLighting(savedData.lightLighting)
+
+	local origText = btn.Text
+	btn.Text = "✅ נטען בהצלחה!"
+	btn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
+	task.wait(1.2)
+	btn.Text = origText
+	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+end)
+
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
--- 7. מנגנון מעקב נתוני הכדור
+-- 7. מעקב נתוני הכדור
 ----------------------------------------------------
 local peakSpeed = 0
 
@@ -488,18 +592,13 @@ end)
 
 resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
-	korbloxActive = false
-	headlessActive = false
-	ballStatsActive = false
-	statsFrame.Visible = false
-	ballStatsBtn.Text = "⚔️ Ball Stats: כבוי"
-	ballStatsBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-	korbloxBtn.Text = "🦵 Korblox Leg: כבוי"
-	korbloxBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-	headlessBtn.Text = "💀 Headless: כבוי"
-	headlessBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-	setSpeed(16)
-	setJumpPower(50)
+	setKorblox(false)
+	setHeadless(false)
+	setBallStats(false)
+	setDarkLighting(false)
+	setLightLighting(false)
+	speedUpdateFunc(30)
+	jumpUpdateFunc(50)
 	peakSpeed = 0
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
@@ -567,7 +666,7 @@ task.spawn(function()
 
 	local barFill = Instance.new("Frame")
 	barFill.Size = UDim2.new(0, 0, 1, 0)
-	barFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- פס טעינה לבן
+	barFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	barFill.BorderSizePixel = 0
 	barFill.Parent = barBackground
 
@@ -576,7 +675,7 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "LOADING BALL STATS MODULE [75%]"
+	subLabel.Text = "LOADING LIGHTING TOGGLES [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
