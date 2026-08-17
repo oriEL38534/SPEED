@@ -141,7 +141,7 @@ rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
 ----------------------------------------------------
--- 3. פונקציות תנועה ומצלמה (מוגנות מניתוק)
+-- 3. פונקציות תנועה ומצלמה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
 	currentSavedSpeed = math.clamp(newSpeed, 16, 100)
@@ -416,7 +416,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM
+-- מנגנון E-SPAM הוחזר ופעיל
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -428,11 +428,11 @@ local function setESpam(state)
 		task.spawn(function()
 			while eSpamActive do
 				pcall(function()
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
 					task.wait(0.01)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
 				end)
-				task.wait(0.05)
+				task.wait(0.04)
 			end
 		end)
 	else
@@ -446,7 +446,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY דינמי ומתקדם (מתאים לכדורים מהירים)
+-- 🛡️ מנגנון AUTO PARRY מהיר וחכם (מוקדש לכדורים מהירים מאוד)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -663,7 +663,7 @@ local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry הדינמית
+-- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry המתקדמת (מגיב מוקדם יותר)
 ----------------------------------------------------
 local peakSpeed = 0
 
@@ -700,19 +700,20 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
 		
-		-- Auto Parry דינמי מותאם למהירות הכדור
+		-- Auto Parry מוקדם ודינמי מותאם למהירות האולטרה של הכדור
 		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
 			local rootPart = char.HumanoidRootPart
 			local distance = (ball.Position - rootPart.Position).Magnitude
 			local ballVel = ball.AssemblyLinearVelocity
 			
-			-- חישוב טווח דינמי מתקדם (מתרחב ככל שהכדור מהיר יותר)
-			local dynamicThreshold = math.clamp(18 + (currentSpeed * 0.04), 18, 45)
+			-- חישוב זמן הגעה (Time to Impact) כדי לזהות כדורים מהירים לפני שהם פוגעים בך
+			-- ככל שהמהירות עולה, הטווח גדל משמעותית כדי להכות מוקדם
+			local dynamicThreshold = math.clamp(20 + (currentSpeed * 0.08), 20, 65)
 			
 			if distance <= dynamicThreshold then
 				pcall(function()
 					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-					task.wait(0.02)
+					task.wait(0.01)
 					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
 				end)
 			end
@@ -729,6 +730,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
+	setESpam(false)
 	setAutoParry(false)
 	setAutoLoad(false)
 	
