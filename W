@@ -30,7 +30,6 @@ frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 
--- עיגול פינות
 local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
@@ -39,10 +38,10 @@ frameCorner.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "הסקריפט שלי"
+title.Text = "הסקריפט שלי (Mobile/KB)"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
-title.TextSize = 18
+title.TextSize = 16
 title.Font = Enum.Font.SourceSansBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
@@ -77,7 +76,6 @@ local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 6)
 toggleCorner.Parent = toggleBtn
 
--- לוגיקת פתיחה/סגירה
 local function toggleMenu()
 	frame.Visible = not frame.Visible
 end
@@ -127,7 +125,7 @@ createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
 local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
 
--- פונקציה לעצירת הספאם בטוחה ומיידית
+-- עצירה מוחלטת
 local function stopSpam()
 	spamEnabled = false
 	if spamThread then
@@ -138,7 +136,7 @@ local function stopSpam()
 	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
--- פונקציה להפעלת הספאם
+-- הפעלה בטוחה שתואמת גם למובייל
 local function startSpam()
 	if not spamEnabled then
 		spamEnabled = true
@@ -147,29 +145,35 @@ local function startSpam()
 		
 		spamThread = task.spawn(function()
 			while spamEnabled do
-				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait(0.03)
-				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				-- שליחת בלוק שמתאים גם לנייד
+				pcall(function()
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+					task.wait(0.03)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+				end)
 				task.wait(0.05)
 			end
 		end)
 	end
 end
 
--- חיבור כפתורי הממשק
-spamBtn.MouseButton1Click:Connect(function()
-	if spamEnabled then stopSpam() else startSpam() end
-end)
+local function toggleSpamState()
+	if spamEnabled then
+		stopSpam()
+	else
+		startSpam()
+	end
+end
+
+spamBtn.MouseButton1Click:Connect(toggleSpamState)
 stopSpamBtn.MouseButton1Click:Connect(stopSpam)
 
--- שליטה דרך מקש R בלבד (ללא שום הקרנה מעכבר)
+-- זיהוי מקלדת חיצונית בטלפון (מטפל גם ב-Keycode וגם ב-RawInput)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
-	if input.KeyCode == Enum.KeyCode.R then
-		if spamEnabled then
-			stopSpam()
-		else
-			startSpam()
-		end
+	
+	-- בדיקת לחיצה על מקש R (מקלדת או מקלדת חיצונית בטלפון)
+	if input.KeyCode == Enum.KeyCode.R or input.KeyCode == Enum.KeyCode.Unknown and input.UserInputType == Enum.UserInputType.Keyboard then
+		toggleSpamState()
 	end
 end)
