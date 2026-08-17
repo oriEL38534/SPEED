@@ -7,22 +7,22 @@ screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- יצירת המסגרת (Frame)
+-- יצירת המסגרת (Frame) - רקע לבן
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 200, 0, 220)
 frame.Position = UDim2.new(0.05, 0, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- לבן
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true -- מאפשר לגשת ולגרור את החלון על המסך
 frame.Parent = screenGui
 
--- כותרת
+-- כותרת - לבן עם אפור בהיר
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 40)
 title.Text = "תפריט מהירות"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+title.TextColor3 = Color3.fromRGB(0, 0, 0) -- טקסט שחור
+title.BackgroundColor3 = Color3.fromRGB(230, 230, 230) -- אפור בהיר לכותרת
 title.TextSize = 18
 title.Font = Enum.Font.SourceSansBold
 title.Parent = frame
@@ -37,14 +37,16 @@ local function setSpeed(newSpeed)
 	end
 end
 
--- פונקציית עזר ליצירת כפתורים
+-- פונקציית עזר ליצירת כפתורים בלבן/אפור בהיר
 local function createButton(text, positionY, speedValue)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.8, 0, 0, 30)
 	btn.Position = UDim2.new(0.1, 0, 0, positionY)
 	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+	btn.TextColor3 = Color3.fromRGB(0, 0, 0) -- טקסט שחור
+	btn.BackgroundColor3 = Color3.fromRGB(240, 240, 240) -- כפתור לבן-אפור
+	btn.BorderSizePixel = 1
+	btn.BorderColor3 = Color3.fromRGB(200, 200, 200) -- מסגרת עדינה לכפתור
 	btn.TextSize = 16
 	btn.Font = Enum.Font.SourceSans
 	btn.Parent = frame
