@@ -134,12 +134,12 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
 -- שליטה בגרפיקת המשחק
-createButton("🌑 גרפיקה כהה (Dark)", 215, function()
-	Lighting.ClockTime = 0
-	Lighting.Brightness = 0.5
+createButton("🌒 גרפיקה כהה (מאוזנת)", 215, function()
+	Lighting.ClockTime = 20 -- שעות ערב/לילה מוקדמות
+	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
-	Lighting.OutdoorAmbient = Color3.fromRGB(20, 20, 35)
-	Lighting.Ambient = Color3.fromRGB(15, 15, 20)
+	Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 90) -- כהה עדין ועדיין רואים הכל
+	Lighting.Ambient = Color3.fromRGB(60, 60, 80)
 end)
 
 createButton("☀️ גרפיקה בהירה (Bright)", 260, function()
