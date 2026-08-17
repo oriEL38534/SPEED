@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 -- שמירת הגדרות ברירת המחדל של תאורת המשחק
@@ -16,6 +17,7 @@ local defaultLighting = {
 -- משתנים לניהול מצב
 local infJumpActive = false
 local infJumpConnection = nil
+local highlightsFolder = nil
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -125,6 +127,58 @@ local function createButton(text, positionY, onClick)
 	return btn
 end
 
+-- ניקוי הילות
+local function removeHighlights()
+	if highlightsFolder then
+		highlightsFolder:Destroy()
+		highlightsFolder = nil
+	end
+end
+
+-- יצירת הילות לכדור ולשחקנים
+local function applyHighlights()
+	removeHighlights()
+	
+	highlightsFolder = Instance.new("Folder")
+	highlightsFolder.Name = "DarkGlowHighlights"
+	highlightsFolder.Parent = Workspace
+
+	-- 1. הילה לכדור (כתום-אש)
+	local ballsFolder = Workspace:FindFirstChild("Balls")
+	local targetBall = nil
+	
+	if ballsFolder then
+		targetBall = ballsFolder:FindFirstChildOfClass("Part") or ballsFolder:FindFirstChildOfClass("Model")
+	else
+		targetBall = Workspace:FindFirstChild("Ball")
+	end
+	
+	if targetBall then
+		local ballHighlight = Instance.new("Highlight")
+		ballHighlight.Name = "BallGlow"
+		ballHighlight.FillColor = Color3.fromRGB(255, 80, 0)
+		ballHighlight.FillTransparency = 0.4
+		ballHighlight.OutlineColor = Color3.fromRGB(255, 220, 0)
+		ballHighlight.OutlineTransparency = 0
+		ballHighlight.Parent = targetBall
+		ballHighlight.Adornee = targetBall
+	end
+
+	-- 2. הילה לכל השחקנים (לבן-תכלת זוהר)
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character then
+			local plrHighlight = Instance.new("Highlight")
+			plrHighlight.Name = plr.Name .. "_Glow"
+			plrHighlight.FillColor = Color3.fromRGB(0, 200, 255)
+			plrHighlight.FillTransparency = 0.6
+			plrHighlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+			plrHighlight.OutlineTransparency = 0
+			plrHighlight.Parent = highlightsFolder
+			plrHighlight.Adornee = plr.Character
+		end
+	end
+end
+
 -- כפתורי מהירות
 createButton("מהירות 30", 45, function() setSpeed(30) end)
 createButton("מהירות 100", 85, function() setSpeed(100) end)
@@ -134,15 +188,18 @@ createButton("מהירות 200", 125, function() setSpeed(200) end)
 local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 170, function() end)
 
 -- שליטה בגרפיקת המשחק
-createButton("🌒 גרפיקה כהה (מאוזנת)", 215, function()
-	Lighting.ClockTime = 20 -- שעות ערב/לילה מוקדמות
+createButton("🌒 כהה (עם כדור ושחקנים זוהרים)", 215, function()
+	Lighting.ClockTime = 20
 	Lighting.Brightness = 1.2
 	Lighting.GlobalShadows = true
-	Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 90) -- כהה עדין ועדיין רואים הכל
+	Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 90)
 	Lighting.Ambient = Color3.fromRGB(60, 60, 80)
+	
+	applyHighlights()
 end)
 
 createButton("☀️ גרפיקה בהירה (Bright)", 260, function()
+	removeHighlights()
 	Lighting.ClockTime = 14
 	Lighting.Brightness = 3
 	Lighting.GlobalShadows = false
@@ -152,6 +209,7 @@ createButton("☀️ גרפיקה בהירה (Bright)", 260, function()
 end)
 
 createButton("🔄 החזר גרפיקה לרגיל", 305, function()
+	removeHighlights()
 	Lighting.ClockTime = defaultLighting.ClockTime
 	Lighting.Brightness = defaultLighting.Brightness
 	Lighting.GlobalShadows = defaultLighting.GlobalShadows
@@ -200,6 +258,7 @@ end)
 
 -- איפוס מלא
 resetAllBtn.MouseButton1Click:Connect(function()
+	removeHighlights()
 	disableInfJump()
 	setSpeed(16)
 end)
