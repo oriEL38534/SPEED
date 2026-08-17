@@ -28,6 +28,8 @@ local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
 local autoClickerActive = false
+local spinActive = false
+local spinSpeed = 10 -- מהירות סיבוב ברירת מחדל
 
 -- ערכים נוכחיים להגדרות
 local currentSavedSpeed = 30
@@ -40,7 +42,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 540)
+frame.Size = UDim2.new(0, 480, 0, 580) -- הוגדל מעט כדי להכיל את האופציה החדשה
 frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
@@ -113,8 +115,8 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.85, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.1, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.08, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
@@ -124,8 +126,8 @@ leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.85, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.1, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.08, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
@@ -421,7 +423,6 @@ task.spawn(function()
 	while true do
 		if autoClickerActive then
 			pcall(function()
-				-- מפעיל את כפתור הפעולה המרכזי במשחק בצורה בטוחה
 				local vim = game:GetService("VirtualUser")
 				vim:Button1Down(Vector2.new(0,0))
 				task.wait(0.01)
@@ -488,6 +489,28 @@ local function setHeadless(state)
 end
 headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
 
+-- כפתור ותפריט סיבוב (Spin / SPAN)
+local spinBtn = createButton(rightCol, "🌪️ Spin: כבוי", 3, function() end)
+
+local function setSpin(state)
+	spinActive = state
+	if spinActive then
+		spinBtn.Text = "✅ Spin: פעיל"
+		spinBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+	else
+		spinBtn.Text = "🌪️ Spin: כבוי"
+		spinBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+spinBtn.MouseButton1Click:Connect(function()
+	setSpin(not spinActive)
+end)
+
+createSlider(rightCol, "🌪️ מהירות Spin", 5, 50, 10, 4, function(val)
+	spinSpeed = val
+end)
+
 local darkBtn, lightBtn
 
 local function restoreDefaultLighting()
@@ -496,7 +519,7 @@ local function restoreDefaultLighting()
 	Lighting.GlobalShadows = defaultGlobalShadows
 end
 
-darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
+darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 5, function()
 	if darkLightingActive then
 		darkLightingActive = false
 		darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -517,7 +540,7 @@ darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
 	end
 end)
 
-lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, function()
+lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 6, function()
 	if lightLightingActive then
 		lightLightingActive = false
 		lightBtn.Text = "☀️ מצב בהיר: כבוי"
@@ -538,7 +561,7 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 	end
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 local peakSpeed = 0
@@ -574,7 +597,7 @@ local function getBall()
 	return Workspace:FindFirstChild("Ball")
 end
 
-RunService.RenderStepped:Connect(function()
+RunService.RenderStepped:Connect(function(dt)
 	local ball = getBall()
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
@@ -591,6 +614,17 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: 0"
 		end
 	end
+
+	-- ביצוע סיבוב הדמות (Spin) אם מופעל
+	if spinActive then
+		local char = player.Character
+		if char then
+			local root = char:FindFirstChild("HumanoidRootPart")
+			if root then
+				root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(spinSpeed * dt * 60), 0)
+			end
+		end
+	end
 end)
 
 resetAllBtn.MouseButton1Click:Connect(function()
@@ -599,6 +633,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
+	setSpin(false)
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
