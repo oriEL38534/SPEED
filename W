@@ -33,6 +33,7 @@ local darkLightingActive = false
 local lightLightingActive = false
 local eSpamActive = false
 local autoParryActive = false
+local autoLoadActive = false
 
 -- ערכים נוכחיים להגדרות (עבור מערכת השמירה)
 local currentSavedSpeed = 30
@@ -455,7 +456,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY בטוח (לוחץ רק פעמיים בדיוק לפי מרחק)
+-- 🛡️ מנגנון AUTO PARRY חסין מבעיות Anti-Cheat
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -585,37 +586,11 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 end)
 
 ----------------------------------------------------
--- 💾 מערכת שמירה וטעינה
+-- 💾 מערכת שמירה, טעינה ו-Auto Load
 ----------------------------------------------------
 local fileName = "SpeedHub_Profile.json"
 
-local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
-	local profileData = {
-		Speed = currentSavedSpeed,
-		Jump = currentSavedJump,
-		FOV = currentSavedFOV,
-		InfJump = infJumpActive,
-		Korblox = korbloxActive,
-		Headless = headlessActive,
-		DarkLighting = darkLightingActive,
-		LightLighting = lightLightingActive,
-		AutoParry = autoParryActive
-	}
-	
-	local success, encoded = pcall(function()
-		return HttpService:JSONEncode(profileData)
-	end)
-	
-	if success and writefile then
-		pcall(function()
-			writefile(fileName, encoded)
-		end)
-		print("LOAD: Profile successfully saved!")
-	end
-end)
-saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
-
-local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
+local function loadProfileData()
 	if readfile and isfile and isfile(fileName) then
 		local success, decoded = pcall(function()
 			local content = readfile(fileName)
@@ -633,6 +608,7 @@ local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
 			if decoded.Korblox ~= nil then setKorblox(decoded.Korblox) end
 			if decoded.Headless ~= nil then setHeadless(decoded.Headless) end
 			if decoded.AutoParry ~= nil then setAutoParry(decoded.AutoParry) end
+			if decoded.AutoLoad ~= nil then autoLoadActive = decoded.AutoLoad end
 			
 			if decoded.DarkLighting then
 				darkLightingActive = false
@@ -644,13 +620,59 @@ local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
 			
 			print("LOAD: Profile successfully loaded!")
 		end
-	else
-		print("LOAD: No saved profile found.")
 	end
+end
+
+local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
+	local profileData = {
+		Speed = currentSavedSpeed,
+		Jump = currentSavedJump,
+		FOV = currentSavedFOV,
+		InfJump = infJumpActive,
+		Korblox = korbloxActive,
+		Headless = headlessActive,
+		DarkLighting = darkLightingActive,
+		LightLighting = lightLightingActive,
+		AutoParry = autoParryActive,
+		AutoLoad = autoLoadActive
+	}
+	
+	local success, encoded = pcall(function()
+		return HttpService:JSONEncode(profileData)
+	end)
+	
+	if success and writefile then
+		pcall(function()
+			writefile(fileName, encoded)
+		end)
+		print("LOAD: Profile successfully saved!")
+	end
+end)
+saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
+
+local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
+	loadProfileData()
 end)
 loadProfileBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 140)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
+local autoLoadBtn = createButton(rightCol, "⚡ Auto Load: כבוי", 7, function() end)
+
+local function setAutoLoad(state)
+	autoLoadActive = state
+	if autoLoadActive then
+		autoLoadBtn.Text = "✅ Auto Load: פעיל"
+		autoLoadBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+	else
+		autoLoadBtn.Text = "⚡ Auto Load: כבוי"
+		autoLoadBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+autoLoadBtn.MouseButton1Click:Connect(function()
+	setAutoLoad(not autoLoadActive)
+end)
+
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 print("LOAD: Features fully assembled.")
@@ -659,7 +681,8 @@ print("LOAD: Features fully assembled.")
 -- 7. מעקב נתוני הכדור, Auto Parry ובקרת לחיצות
 ----------------------------------------------------
 local peakSpeed = 0
-local hasParried = false
+local lastParryTime = 0
+local parryCooldown = 0.35 -- השהייה למניעת Kick
 
 resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeed = 0
@@ -685,7 +708,7 @@ RunService.RenderStepped:Connect(function()
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
 		
-		-- עדכון Peak Speed וסטטיסטיקות כדור
+		-- עדכון Peak Speed
 		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
 				peakSpeed = currentSpeed
@@ -694,31 +717,32 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
 		
-		-- לוגיקת Auto Parry מאובטחת (לחיצה מבוקרת פעמיים בלבד)
+		-- Auto Parry מוגן
 		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
 			local hrp = char.HumanoidRootPart
 			local distance = (ball.Position - hrp.Position).Magnitude
-			local dynamicThreshold = math.clamp(14 + (currentSpeed * 0.12), 14, 35)
+			local ballVel = ball.AssemblyLinearVelocity
 			
-			if distance <= dynamicThreshold then
-				if not hasParried then
-					hasParried = true
-					pcall(function()
-						-- לחיצה מבוקרת ראשונה
-						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-						task.wait(0.03)
-						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-						task.wait(0.05)
-						-- לחיצה מבוקרת שנייה להבטחת המכה
-						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-						task.wait(0.03)
-						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+			-- בדיקה האם הכדור זז לכיוון השחקן
+			local dirToPlayer = (hrp.Position - ball.Position).Unit
+			local isApproaching = ballVel.Magnitude > 2 and (ballVel.Unit:Dot(dirToPlayer) > 0.15)
+			
+			-- חישוב מרחק תגובה דינמי
+			local reactionDistance = math.clamp(12 + (currentSpeed * 0.12), 12, 35)
+			
+			if isApproaching and distance <= reactionDistance then
+				local currentTime = os.clock()
+				if (currentTime - lastParryTime) >= parryCooldown then
+					lastParryTime = currentTime
+					
+					-- הרצה בתהליך מופרד למניעת תקיעות ודיסקורד
+					task.spawn(function()
+						pcall(function()
+							VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+							task.wait(0.02)
+							VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+						end)
 					end)
-				end
-			else
-				-- איפוס ברגע שהכדור מתרחק כדי שיהיה מוכן לפעימה הבאה
-				if distance > (dynamicThreshold + 10) then
-					hasParried = false
 				end
 			end
 		end
@@ -736,7 +760,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setBallStats(false)
 	setESpam(false)
 	setAutoParry(false)
-	hasParried = false
+	setAutoLoad(false)
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -758,9 +782,14 @@ end)
 player.CharacterAdded:Connect(function(char)
 	char:WaitForChild("Humanoid")
 	task.wait(0.5)
-	hasParried = false
 	if korbloxActive then applyKorblox() end
 	if headlessActive then applyHeadless() end
+	
+	if autoLoadActive then
+		pcall(function()
+			loadProfileData()
+		end)
+	end
 end)
 
 print("LOAD: Ball tracking & Safe Auto Parry loaded.")
@@ -802,7 +831,6 @@ task.spawn(function()
 	introLabel.Font = Enum.Font.GothamBold
 	introLabel.Parent = introFrame
 
----
 	local subLabel = Instance.new("TextLabel")
 	subLabel.Size = UDim2.new(1, 0, 0.2, 0)
 	subLabel.Position = UDim2.new(0, 0, 0.45, 0)
@@ -839,6 +867,17 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 
 	task.wait(0.5)
+	
+	pcall(function()
+		if readfile and isfile and isfile(fileName) then
+			local content = readfile(fileName)
+			local decoded = HttpService:JSONDecode(content)
+			if decoded and decoded.AutoLoad then
+				loadProfileData()
+			end
+		end
+	end)
+
 	introGui:Destroy()
 
 	frame.Visible = true
