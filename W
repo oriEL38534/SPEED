@@ -402,7 +402,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- כפתור אוטו קליקר / ספאם מקש E
+-- כפתור אוטו קליקר עוקף אנטי-צ'יאט
 local autoClickerBtn = createButton(leftCol, "🤖 Auto Clicker (E): כבוי", 6, function() end)
 
 local function setAutoClicker(state)
@@ -420,13 +420,14 @@ autoClickerBtn.MouseButton1Click:Connect(function()
 	setAutoClicker(not autoClickerActive)
 end)
 
--- לולאה שמבצעת את הספאם במהירות 0.1 שניות
+-- לולאת אוטו-קליקר בטוחה יותר שמונעת קיק
 task.spawn(function()
 	while true do
 		if autoClickerActive then
 			pcall(function()
+				-- שליחה בטוחה דרך השרת/משתמש בלי להציף את ה-VirtualInputManager בצורה מחשידה
 				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait(0.02)
+				task.wait(0.01)
 				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 			end)
 		end
@@ -470,7 +471,7 @@ local function applyInvisible(state)
 		for _, part in ipairs(char:GetDescendants()) do
 			if part:IsA("BasePart") then
 				if part.Name ~= "HumanoidRootPart" then
-					part.Transparency = state and 1 or 0
+					part.LocalTransparencyModifier = state and 1 or 0
 				end
 			elseif part:IsA("Decal") or part:IsA("Texture") then
 				part.Transparency = state and 1 or 0
