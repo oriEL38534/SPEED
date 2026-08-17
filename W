@@ -447,7 +447,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY סופר מהיר ומוקדם (מתוקן וחלק)
+-- 🛡️ מנגנון AUTO PARRY מהיר, מוקדם ומדויק (לחיצה אחת בלבד בזמן הנכון)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -698,7 +698,7 @@ local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 9, function
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry המתקדמת
+-- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry המתוקנת (מוקדמת, מהירה ומדוייקת)
 ----------------------------------------------------
 local peakSpeed = 0
 local lastParryTick = 0
@@ -736,16 +736,18 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
 		
-		-- Auto Parry מוקדם, דינמי ומוגן מפני היתקעות (עם Cooldown)
+		-- Auto Parry מהיר, מוקדם (טווח רחב יותר) ומוגן בלחיצה אחת בדיוק
 		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
 			local rootPart = char.HumanoidRootPart
 			local distance = (ball.Position - rootPart.Position).Magnitude
 			
-			local dynamicThreshold = math.clamp(30 + (currentSpeed * 0.15), 30, 110)
+			-- טווח דינמי מוגדל שמתאים גם לכדורים מהירים מאוד (מגיב מוקדם יותר)
+			local dynamicThreshold = math.clamp(40 + (currentSpeed * 0.22), 45, 150)
 			
 			if distance <= dynamicThreshold then
 				local currentTime = tick()
-				if currentTime - lastParryTick > 0.15 then
+				-- Cooldown של 0.35 שניות שמונע לחלוטין כפילויות ומבטיח תגובה מהירה למכה הבאה
+				if currentTime - lastParryTick > 0.35 then
 					lastParryTick = currentTime
 					pcall(function()
 						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
