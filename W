@@ -631,7 +631,7 @@ resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 print("LOAD: Left and right column features fully assembled.")
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור בזמן אמת ו-Peak Speed
+-- 7. מעקב נתוני הכדור בזמן אמת ו-Peak Speed (מתוקן)
 ----------------------------------------------------
 local peakSpeed = 0
 
@@ -640,22 +640,39 @@ resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
+-- פונקציה חכמה למציאת הכדור
 local function getBall()
-	local ballsFolder = Workspace:FindFirstChild("Balls")
-	if ballsFolder then
-		for _, v in pairs(ballsFolder:GetChildren()) do
-			if v:IsA("BasePart") then
-				return v
+	local bestBall = nil
+	local highestVelocity = 0
+
+	for _, v in pairs(Workspace:GetChildren()) do
+		if v:IsA("BasePart") and v.AssemblyLinearVelocity.Magnitude > 10 then
+			if v.AssemblyLinearVelocity.Magnitude > highestVelocity then
+				highestVelocity = v.AssemblyLinearVelocity.Magnitude
+				bestBall = v
 			end
 		end
 	end
-	return Workspace:FindFirstChild("Ball")
+	
+	local ballsFolder = Workspace:FindFirstChild("Balls") or Workspace:FindFirstChild("BallFolder")
+	if ballsFolder then
+		for _, v in pairs(ballsFolder:GetChildren()) do
+			if v:IsA("BasePart") then
+				if v.AssemblyLinearVelocity.Magnitude > highestVelocity then
+					highestVelocity = v.AssemblyLinearVelocity.Magnitude
+					bestBall = v
+				end
+			end
+		end
+	end
+	
+	return bestBall
 end
 
 RunService.RenderStepped:Connect(function()
 	if ballStatsActive and statsFrame.Visible then
 		local ball = getBall()
-		if ball and ball:IsA("BasePart") then
+		if ball then
 			local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
 			
 			if currentSpeed > peakSpeed then
@@ -665,7 +682,7 @@ RunService.RenderStepped:Connect(function()
 			
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		else
-			currentSpeedLabel.Text = "⚡ Speed: 0"
+			currentSpeedLabel.Text = "⚡ Speed: Searching..."
 		end
 	end
 end)
