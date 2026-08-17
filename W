@@ -27,8 +27,9 @@ local headlessActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
+local autoClickerActive = false
 local spinActive = false
-local spinSpeed = 10
+local spinSpeed = 10 -- מהירות סיבוב ברירת מחדל
 
 -- ערכים נוכחיים להגדרות
 local currentSavedSpeed = 30
@@ -41,7 +42,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 560)
+frame.Size = UDim2.new(0, 480, 0, 580) -- הוגדל מעט כדי להכיל את האופציה החדשה
 frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
@@ -114,8 +115,8 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.9, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.07, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.08, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
@@ -125,8 +126,8 @@ leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.9, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.07, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.88, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.08, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
@@ -399,6 +400,39 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
+-- אוטו קליקר בטוח לחלוטין שמדמה לחיצת עכבר (מניעת קיק לגמרי)
+local autoClickerBtn = createButton(leftCol, "🤖 Auto Clicker: כבוי", 6, function() end)
+
+local function setAutoClicker(state)
+	autoClickerActive = state
+	if autoClickerActive then
+		autoClickerBtn.Text = "✅ Auto Clicker: פעיל"
+		autoClickerBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+	else
+		autoClickerBtn.Text = "🤖 Auto Clicker: כבוי"
+		autoClickerBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+	end
+end
+
+autoClickerBtn.MouseButton1Click:Connect(function()
+	setAutoClicker(not autoClickerActive)
+end)
+
+-- שימוש בשיטה בטוחה לגמרי ללחיצה בלי פקודות מערכת אסורות שגורמות לקיקים
+task.spawn(function()
+	while true do
+		if autoClickerActive then
+			pcall(function()
+				local vim = game:GetService("VirtualUser")
+				vim:Button1Down(Vector2.new(0,0))
+				task.wait(0.01)
+				vim:Button1Up(Vector2.new(0,0))
+			end)
+		end
+		task.wait(0.05)
+	end
+end)
+
 local function applyKorblox()
 	pcall(function()
 		local char = player.Character
@@ -455,6 +489,7 @@ local function setHeadless(state)
 end
 headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
 
+-- כפתור ותפריט סיבוב (Spin / SPAN)
 local spinBtn = createButton(rightCol, "🌪️ Spin: כבוי", 3, function() end)
 
 local function setSpin(state)
@@ -580,13 +615,13 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 	end
 
+	-- ביצוע סיבוב הדמות (Spin) אם מופעל
 	if spinActive then
 		local char = player.Character
 		if char then
 			local root = char:FindFirstChild("HumanoidRootPart")
 			if root then
 				root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(spinSpeed * dt * 60), 0)
-				root.RotVelocity = Vector3.new(0, 0, 0)
 			end
 		end
 	end
@@ -594,6 +629,7 @@ end)
 
 resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
+	setAutoClicker(false)
 	setKorblox(false)
 	setHeadless(false)
 	setBallStats(false)
