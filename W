@@ -28,6 +28,7 @@ local defaultGlobalShadows = Lighting.GlobalShadows
 local infJumpActive = false
 local korbloxActive = false
 local headlessActive = false
+local invisibleActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
@@ -446,7 +447,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY סופר מהיר ומוקדם (מתוקן: עובד אך ורק כשהוא פעיל)
+-- 🛡️ מנגנון AUTO PARRY סופר מהיר ומוקדם (מתוקן וחלק)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -494,6 +495,23 @@ local function applyHeadless()
 	end)
 end
 
+local function applyInvisible(state)
+	invisibleActive = state
+	pcall(function()
+		local char = player.Character
+		if not char then return end
+		for _, part in ipairs(char:GetDescendants()) do
+			if part:IsA("BasePart") then
+				if part.Name ~= "HumanoidRootPart" then
+					part.Transparency = state and 1 or 0
+				end
+			elseif part:IsA("Decal") or part:IsA("Texture") then
+				part.Transparency = state and 1 or 0
+			end
+		end
+	end)
+end
+
 local korbloxBtn = createButton(rightCol, "🦵 Korblox Leg: כבוי", 1, function() end)
 local function setKorblox(state)
 	korbloxActive = state
@@ -522,6 +540,21 @@ local function setHeadless(state)
 end
 headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
 
+local invisibleBtn = createButton(rightCol, "👻 Invisible: כבוי", 3, function() end)
+local function setInvisible(state)
+	invisibleActive = state
+	if invisibleActive then
+		invisibleBtn.Text = "✅ Invisible: פעיל"
+		invisibleBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
+		applyInvisible(true)
+	else
+		invisibleBtn.Text = "👻 Invisible: כבוי"
+		invisibleBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
+		applyInvisible(false)
+	end
+end
+invisibleBtn.MouseButton1Click:Connect(function() setInvisible(not invisibleActive) end)
+
 ----------------------------------------------------
 -- ניהול תאורה חכם
 ----------------------------------------------------
@@ -533,7 +566,7 @@ local function restoreDefaultLighting()
 	Lighting.GlobalShadows = defaultGlobalShadows
 end
 
-darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
+darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 4, function()
 	if darkLightingActive then
 		darkLightingActive = false
 		darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -554,7 +587,7 @@ darkBtn = createButton(rightCol, "🌒 מצב כהה: כבוי", 3, function()
 	end
 end)
 
-lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, function()
+lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 5, function()
 	if lightLightingActive then
 		lightLightingActive = false
 		lightBtn.Text = "☀️ מצב בהיר: כבוי"
@@ -597,6 +630,7 @@ local function loadProfileData()
 			end
 			if decoded.Korblox ~= nil then setKorblox(decoded.Korblox) end
 			if decoded.Headless ~= nil then setHeadless(decoded.Headless) end
+			if decoded.Invisible ~= nil then setInvisible(decoded.Invisible) end
 			if decoded.AutoParry ~= nil then setAutoParry(decoded.AutoParry) end
 			if decoded.AutoLoad ~= nil then autoLoadActive = decoded.AutoLoad end
 			
@@ -611,7 +645,7 @@ local function loadProfileData()
 	end
 end
 
-local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
+local saveBtn = createButton(rightCol, "💾 Save Profile", 6, function()
 	local profileData = {
 		Speed = currentSavedSpeed,
 		Jump = currentSavedJump,
@@ -619,6 +653,7 @@ local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
 		InfJump = infJumpActive,
 		Korblox = korbloxActive,
 		Headless = headlessActive,
+		Invisible = invisibleActive,
 		DarkLighting = darkLightingActive,
 		LightLighting = lightLightingActive,
 		AutoParry = autoParryActive,
@@ -637,12 +672,12 @@ local saveBtn = createButton(rightCol, "💾 Save Profile", 5, function()
 end)
 saveBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 80)
 
-local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 6, function()
+local loadProfileBtn = createButton(rightCol, "📂 Load Profile", 7, function()
 	loadProfileData()
 end)
 loadProfileBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 140)
 
-local autoLoadBtn = createButton(rightCol, "⚡ Auto Load: כבוי", 7, function() end)
+local autoLoadBtn = createButton(rightCol, "⚡ Auto Load: כבוי", 8, function() end)
 
 local function setAutoLoad(state)
 	autoLoadActive = state
@@ -659,13 +694,14 @@ autoLoadBtn.MouseButton1Click:Connect(function()
 	setAutoLoad(not autoLoadActive)
 end)
 
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 9, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry המתוקנת והמוקדמת
+-- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry המתקדמת
 ----------------------------------------------------
 local peakSpeed = 0
+local lastParryTick = 0
 
 resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeed = 0
@@ -676,7 +712,7 @@ local function getBall()
 	local ballsFolder = Workspace:FindFirstChild("Balls")
 	if ballsFolder then
 		for _, v in pairs(ballsFolder:GetChildren()) do
-			if v:IsA("BasePart") then
+			if v:IsA("BasePart") and v.Transparency < 1 then
 				return v
 			end
 		end
@@ -691,7 +727,7 @@ RunService.RenderStepped:Connect(function()
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
 		
-		-- עדכון סטטיסטיקות כדור (רץ תמיד כדי שהנתונים יעבדו)
+		-- עדכון סטטיסטיקות כדור
 		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
 				peakSpeed = currentSpeed
@@ -700,20 +736,23 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
 		
-		-- Auto Parry מוקדם ודינמי: מופעל אך ורק אם autoParryActive הוא true!
+		-- Auto Parry מוקדם, דינמי ומוגן מפני היתקעות (עם Cooldown)
 		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
 			local rootPart = char.HumanoidRootPart
 			local distance = (ball.Position - rootPart.Position).Magnitude
 			
-			-- טווח מוקדם מאוד שגדל באופן אגרסיבי ככל שהכדור מהיר יותר (עד 90 מטר)
-			local dynamicThreshold = math.clamp(25 + (currentSpeed * 0.12), 25, 90)
+			local dynamicThreshold = math.clamp(30 + (currentSpeed * 0.15), 30, 110)
 			
 			if distance <= dynamicThreshold then
-				pcall(function()
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-					task.wait(0.01)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-				end)
+				local currentTime = tick()
+				if currentTime - lastParryTick > 0.15 then
+					lastParryTick = currentTime
+					pcall(function()
+						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+						task.wait(0.01)
+						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+					end)
+				end
 			end
 		end
 	else
@@ -727,6 +766,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
 	setKorblox(false)
 	setHeadless(false)
+	setInvisible(false)
 	setBallStats(false)
 	setESpam(false)
 	setAutoParry(false)
@@ -754,6 +794,7 @@ player.CharacterAdded:Connect(function(char)
 	task.wait(0.5)
 	if korbloxActive then applyKorblox() end
 	if headlessActive then applyHeadless() end
+	if invisibleActive then applyInvisible(true) end
 	
 	if autoLoadActive then
 		pcall(function()
