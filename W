@@ -417,7 +417,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM (מתוקן עם עצירה מיידית)
+-- מנגנון E-SPAM (מתוקן עם עצירה וודאית)
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -447,7 +447,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY (מתוקן לגמרי עם עדכון כפתור ותיקון עצירה)
+-- 🛡️ מנגנון AUTO PARRY (מופרד לחלוטין ונקי)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
