@@ -457,30 +457,14 @@ headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive)
 
 local spinBtn = createButton(rightCol, "🌪️ Spin: כבוי", 3, function() end)
 
--- יצירת אובייקט ייצוב לכוח סיבוב עוקף משחק
-local spinGyro = nil
-
 local function setSpin(state)
 	spinActive = state
-	local char = player.Character
-	local root = char and char:FindFirstChild("HumanoidRootPart")
-	
 	if spinActive then
 		spinBtn.Text = "✅ Spin: פעיל"
 		spinBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		if root and not spinGyro then
-			spinGyro = Instance.new("BodyGyro")
-			spinGyro.MaxTorque = Vector3.new(0, 40000, 0) -- מפעיל כוח רק על ציר הסיבוב
-			spinGyro.P = 20000
-			spinGyro.Parent = root
-		end
 	else
 		spinBtn.Text = "🌪️ Spin: כבוי"
 		spinBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-		if spinGyro then
-			spinGyro:Destroy()
-			spinGyro = nil
-		end
 	end
 end
 
@@ -552,25 +536,31 @@ resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeedLabel.Text = "🔥 Peak Speed: 0"
 end)
 
--- חיפוש משופר שמוצא את הכדור בכל מיקום אפשרי ב-Workspace
 local function getBall()
-	for _, obj in pairs(Workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name == "Balls") and obj.Transparency < 1 then
-			return obj
-		end
-	end
-	-- חיפוש חלופי לפי תכונות פיזיקליות של הכדור
-	for _, obj in pairs(Workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and obj.AssemblyLinearVelocity.Magnitude > 1 and obj.Size.Magnitude < 10 then
-			if obj.Parent and (obj.Parent.Name == "Balls" or obj.Parent.Name == Workspace.Name) then
-				return obj
+	local ballsFolder = Workspace:FindFirstChild("Balls")
+	if ballsFolder then
+		local closestBall = nil
+		local shortestDist = math.huge
+		local char = player.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		
+		for _, v in pairs(ballsFolder:GetChildren()) do
+			if v:IsA("BasePart") and v.Transparency < 1 then
+				if root then
+					local dist = (v.Position - root.Position).Magnitude
+					if dist < shortestDist then
+						shortestDist = dist
+						closestBall = v
+					end
+				else
+					return v
+				end
 			end
 		end
+		return closestBall
 	end
-	return nil
+	return Workspace:FindFirstChild("Ball")
 end
-
-local currentAngle = 0
 
 RunService.RenderStepped:Connect(function(dt)
 	local ball = getBall()
@@ -595,21 +585,9 @@ RunService.RenderStepped:Connect(function(dt)
 		if char then
 			local root = char:FindFirstChild("HumanoidRootPart")
 			if root then
-				if not spinGyro or spinGyro.Parent ~= root then
-					if spinGyro then spinGyro:Destroy() end
-					spinGyro = Instance.new("BodyGyro")
-					spinGyro.MaxTorque = Vector3.new(0, 40000, 0)
-					spinGyro.P = 20000
-					spinGyro.Parent = root
-				end
-				currentAngle = currentAngle + (spinSpeed * dt * 3)
-				spinGyro.CFrame = CFrame.Angles(0, currentAngle, 0)
+				root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(spinSpeed * dt * 60), 0)
+				root.RotVelocity = Vector3.new(0, 0, 0)
 			end
-		end
-	else
-		if spinGyro then
-			spinGyro:Destroy()
-			spinGyro = nil
 		end
 	end
 end)
