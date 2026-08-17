@@ -15,7 +15,7 @@ if pGui:FindFirstChild("SpeedMenuGui") then pGui.SpeedMenuGui:Destroy() end
 if pGui:FindFirstChild("BallStatsGui") then pGui.BallStatsGui:Destroy() end
 
 ----------------------------------------------------
--- 1. משתנים גלובליים ושמירת הגדרות (Save/Load)
+-- 1. משתנים גלובליים
 ----------------------------------------------------
 local infJumpActive = false
 local korbloxActive = false
@@ -24,29 +24,15 @@ local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
 
-local currentSpeedVal = 30
-local currentJumpVal = 50
-
-local savedData = {
-	speed = 30,
-	jump = 50,
-	infJump = false,
-	korblox = false,
-	headless = false,
-	ballStats = false,
-	darkLighting = false,
-	lightLighting = false
-}
-
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpeedMenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 500, 0, 420)
-frame.Position = UDim2.new(0.5, -250, 0.2, 0)
-frame.BackgroundColor3 = Color3.fromRGB(22, 20, 30)
+frame.Size = UDim2.new(0, 480, 0, 380)
+frame.Position = UDim2.new(0.5, -240, 0.25, 0)
+frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
@@ -58,7 +44,7 @@ frameCorner.CornerRadius = UDim.new(0, 10)
 frameCorner.Parent = frame
 
 local frameStroke = Instance.new("UIStroke")
-frameStroke.Color = Color3.fromRGB(240, 240, 255)
+frameStroke.Color = Color3.fromRGB(140, 50, 200)
 frameStroke.Thickness = 1.8
 frameStroke.Parent = frame
 
@@ -102,7 +88,7 @@ toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = toggleBtn
 
 local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(255, 255, 255)
+toggleStroke.Color = Color3.fromRGB(140, 50, 200)
 toggleStroke.Thickness = 1.5
 toggleStroke.Parent = toggleBtn
 
@@ -117,24 +103,24 @@ toggleBtn.MouseButton1Click:Connect(toggleMenu)
 -- 2. עמודות לוח הבקרה עם UIListLayout
 ----------------------------------------------------
 local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.46, 0, 0.84, 0)
-leftCol.Position = UDim2.new(0.03, 0, 0.12, 0)
+leftCol.Size = UDim2.new(0.46, 0, 0.8, 0)
+leftCol.Position = UDim2.new(0.03, 0, 0.15, 0)
 leftCol.BackgroundTransparency = 1
 leftCol.Parent = frame
 
 local leftList = Instance.new("UIListLayout")
-leftList.Padding = UDim.new(0, 8)
+leftList.Padding = UDim.new(0, 10)
 leftList.SortOrder = Enum.SortOrder.LayoutOrder
 leftList.Parent = leftCol
 
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.46, 0, 0.84, 0)
-rightCol.Position = UDim2.new(0.51, 0, 0.12, 0)
+rightCol.Size = UDim2.new(0.46, 0, 0.8, 0)
+rightCol.Position = UDim2.new(0.51, 0, 0.15, 0)
 rightCol.BackgroundTransparency = 1
 rightCol.Parent = frame
 
 local rightList = Instance.new("UIListLayout")
-rightList.Padding = UDim.new(0, 8)
+rightList.Padding = UDim.new(0, 10)
 rightList.SortOrder = Enum.SortOrder.LayoutOrder
 rightList.Parent = rightCol
 
@@ -142,14 +128,12 @@ rightList.Parent = rightCol
 -- 3. פונקציות תנועה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
-	currentSpeedVal = newSpeed
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then hum.WalkSpeed = newSpeed end
 end
 
 local function setJumpPower(newPower)
-	currentJumpVal = newPower
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then
@@ -186,7 +170,7 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 	sliderBG.AutoButtonColor = false
 	sliderBG.Size = UDim2.new(1, 0, 0, 12)
 	sliderBG.Position = UDim2.new(0, 0, 0, 22)
-	sliderBG.BackgroundColor3 = Color3.fromRGB(40, 36, 55)
+	sliderBG.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	sliderBG.BorderSizePixel = 0
 	sliderBG.Parent = container
 
@@ -197,7 +181,7 @@ local function createSlider(parent, titleText, minVal, maxVal, defaultVal, layou
 	local fill = Instance.new("Frame")
 	local startScale = (defaultVal - minVal) / (maxVal - minVal)
 	fill.Size = UDim2.new(math.clamp(startScale, 0, 1), 0, 1, 0)
-	fill.BackgroundColor3 = Color3.fromRGB(230, 230, 250)
+	fill.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
 	fill.BorderSizePixel = 0
 	fill.Parent = sliderBG
 
@@ -249,7 +233,7 @@ end
 
 local function createButton(parent, text, layoutOrder, onClick)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 32)
+	btn.Size = UDim2.new(1, 0, 0, 34)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
@@ -262,11 +246,6 @@ local function createButton(parent, text, layoutOrder, onClick)
 	local btnCorner = Instance.new("UICorner")
 	btnCorner.CornerRadius = UDim.new(0, 6)
 	btnCorner.Parent = btn
-
-	local btnStroke = Instance.new("UIStroke")
-	btnStroke.Color = Color3.fromRGB(180, 180, 210)
-	btnStroke.Thickness = 1
-	btnStroke.Parent = btn
 
 	btn.MouseButton1Click:Connect(function() onClick(btn) end)
 	return btn
@@ -283,7 +262,7 @@ ballStatsGui.Parent = pGui
 local statsFrame = Instance.new("Frame")
 statsFrame.Size = UDim2.new(0, 210, 0, 115)
 statsFrame.Position = UDim2.new(0.75, 0, 0.3, 0)
-statsFrame.BackgroundColor3 = Color3.fromRGB(22, 20, 30)
+statsFrame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 statsFrame.BorderSizePixel = 0
 statsFrame.Active = true
 statsFrame.Draggable = true
@@ -295,7 +274,7 @@ statsCorner.CornerRadius = UDim.new(0, 8)
 statsCorner.Parent = statsFrame
 
 local statsStroke = Instance.new("UIStroke")
-statsStroke.Color = Color3.fromRGB(255, 255, 255)
+statsStroke.Color = Color3.fromRGB(140, 50, 200)
 statsStroke.Thickness = 1.5
 statsStroke.Parent = statsFrame
 
@@ -314,7 +293,7 @@ local currentSpeedLabel = Instance.new("TextLabel")
 currentSpeedLabel.Size = UDim2.new(1, -20, 0, 20)
 currentSpeedLabel.Position = UDim2.new(0, 10, 0, 30)
 currentSpeedLabel.Text = "⚡ Speed: 0"
-currentSpeedLabel.TextColor3 = Color3.fromRGB(240, 240, 255)
+currentSpeedLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
 currentSpeedLabel.BackgroundTransparency = 1
 currentSpeedLabel.TextSize = 12
 currentSpeedLabel.Font = Enum.Font.GothamMedium
@@ -464,9 +443,6 @@ local function setHeadless(state)
 end
 headlessBtn.MouseButton1Click:Connect(function() setHeadless(not headlessActive) end)
 
-----------------------------------------------------
--- כפתורי גרפיקה עם מצבי וי (✅ פעיל / כבוי)
-----------------------------------------------------
 local darkBtn, lightBtn
 
 local function setDarkLighting(state)
@@ -507,47 +483,7 @@ lightBtn = createButton(rightCol, "☀️ מצב בהיר: כבוי", 4, functio
 	setLightLighting(not lightLightingActive)
 end)
 
-----------------------------------------------------
--- כפתורי SAVE / LOAD
-----------------------------------------------------
-local saveBtn = createButton(rightCol, "💾 שמירת הגדרות (Save)", 5, function(btn)
-	savedData.speed = currentSpeedVal
-	savedData.jump = currentJumpVal
-	savedData.infJump = infJumpActive
-	savedData.korblox = korbloxActive
-	savedData.headless = headlessActive
-	savedData.ballStats = ballStatsActive
-	savedData.darkLighting = darkLightingActive
-	savedData.lightLighting = lightLightingActive
-
-	local origText = btn.Text
-	btn.Text = "✅ נשמר בהצלחה!"
-	btn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
-	task.wait(1.2)
-	btn.Text = origText
-	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-end)
-
-local loadBtn = createButton(rightCol, "📂 טעינת הגדרות (Load)", 6, function(btn)
-	speedUpdateFunc(savedData.speed)
-	jumpUpdateFunc(savedData.jump)
-	
-	if savedData.infJump then enableInfJump() else disableInfJump() end
-	setKorblox(savedData.korblox)
-	setHeadless(savedData.headless)
-	setBallStats(savedData.ballStats)
-	setDarkLighting(savedData.darkLighting)
-	setLightLighting(savedData.lightLighting)
-
-	local origText = btn.Text
-	btn.Text = "✅ נטען בהצלחה!"
-	btn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
-	task.wait(1.2)
-	btn.Text = origText
-	btn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-end)
-
-local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 7, function() end)
+local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 5, function() end)
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
@@ -633,7 +569,7 @@ task.spawn(function()
 	introCorner.Parent = introFrame
 
 	local introStroke = Instance.new("UIStroke")
-	introStroke.Color = Color3.fromRGB(255, 255, 255)
+	introStroke.Color = Color3.fromRGB(140, 50, 200)
 	introStroke.Thickness = 2
 	introStroke.Parent = introFrame
 
@@ -651,7 +587,7 @@ task.spawn(function()
 	subLabel.Size = UDim2.new(1, 0, 0.2, 0)
 	subLabel.Position = UDim2.new(0, 0, 0.45, 0)
 	subLabel.Text = "INITIALIZING..."
-	subLabel.TextColor3 = Color3.fromRGB(220, 220, 240)
+	subLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 	subLabel.BackgroundTransparency = 1
 	subLabel.TextSize = 13
 	subLabel.Font = Enum.Font.GothamMedium
@@ -660,13 +596,13 @@ task.spawn(function()
 	local barBackground = Instance.new("Frame")
 	barBackground.Size = UDim2.new(0.85, 0, 0, 8)
 	barBackground.Position = UDim2.new(0.075, 0, 0.75, 0)
-	barBackground.BackgroundColor3 = Color3.fromRGB(40, 36, 55)
+	barBackground.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
 	barBackground.BorderSizePixel = 0
 	barBackground.Parent = introFrame
 
 	local barFill = Instance.new("Frame")
 	barFill.Size = UDim2.new(0, 0, 1, 0)
-	barFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	barFill.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
 	barFill.BorderSizePixel = 0
 	barFill.Parent = barBackground
 
