@@ -44,7 +44,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 620) -- הוגדל מעט כדי להכיל את כל הפיצ'רים בצורה נוחה
+frame.Size = UDim2.new(0, 480, 0, 620)
 frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
@@ -343,7 +343,7 @@ btnCorner.CornerRadius = UDim.new(0, 4)
 btnCorner.Parent = resetPeakBtn
 
 ----------------------------------------------------
--- 6. חלונית SPAM קטנה על המסך (כאשר מופעל)
+-- 6. חלונית SPAM קטנה על המסך
 ----------------------------------------------------
 local spamGui = Instance.new("ScreenGui")
 spamGui.Name = "SpamGui"
@@ -447,7 +447,7 @@ end)
 -- אוטו קליקר
 local autoClickerBtn = createButton(leftCol, "🤖 Auto Clicker: כבוי", 6, function() end)
 
--- פקודת UI ל-SPAM מתחת לאוטו קליקר (מצב ON / OFF)
+-- פקודת UI ל-SPAM מתחת לאוטו קליקר
 local spamToggleBtn = createButton(leftCol, "📌 Spam UI: OFF", 7, function() end)
 
 local function setSpamUI(state)
@@ -482,7 +482,6 @@ autoClickerBtn.MouseButton1Click:Connect(function()
 	setAutoClicker(not autoClickerActive)
 end)
 
--- לחיצה על כפתור ה-SPAM בחלונית הצפה מפעילה את האוטו-קליקר כל עוד לוחצים עליו או בלחיצה
 local isSpamming = false
 
 spamBtnTarget.MouseButton1Down:Connect(function()
@@ -497,18 +496,20 @@ spamBtnTarget.MouseLeave:Connect(function()
 	isSpamming = false
 end)
 
--- פעולת הקליקר הראשית (גם אוטו-קליקר רגיל וגם לחיצה מהחלונית)
+-- מנגנון לחיצה מוגן ובטוח שמונע את שגיאה 267 על ידי מרווחי זמן בטוחים
 task.spawn(function()
 	while true do
 		if autoClickerActive or isSpamming then
 			pcall(function()
-				local vim = game:GetService("VirtualUser")
-				vim:Button1Down(Vector2.new(0,0))
-				task.wait(0.01)
-				vim:Button1Up(Vector2.new(0,0))
+				-- שחרור שימוש ב-VirtualUser הבעייתי והחלפתו בסימולציית שרת בטוחה או פעולת לחיצה מקומית נקייה
+				game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 0)
+				task.wait(0.03)
+				game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 0)
 			end)
+			task.wait(0.08)
+		else
+			task.wait(0.1)
 		end
-		task.wait(0.05)
 	end
 end)
 
