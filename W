@@ -416,7 +416,7 @@ ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
 end)
 
--- מנגנון E-SPAM הוחזר ופעיל
+-- מנגנון E-SPAM
 local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
 
 local function setESpam(state)
@@ -446,7 +446,7 @@ eSpamBtn.MouseButton1Click:Connect(function()
 end)
 
 ----------------------------------------------------
--- 🛡️ מנגנון AUTO PARRY מהיר וחכם (מוקדש לכדורים מהירים מאוד)
+-- 🛡️ מנגנון AUTO PARRY סופר מהיר ומוקדם (מתוקן: עובד אך ורק כשהוא פעיל)
 ----------------------------------------------------
 local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
 
@@ -663,7 +663,7 @@ local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 8, function
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 ----------------------------------------------------
--- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry המתקדמת (מגיב מוקדם יותר)
+-- 7. מעקב נתוני הכדור ומערכת ה-Auto Parry המתוקנת והמוקדמת
 ----------------------------------------------------
 local peakSpeed = 0
 
@@ -691,7 +691,7 @@ RunService.RenderStepped:Connect(function()
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
 		
-		-- עדכון סטטיסטיקות כדור
+		-- עדכון סטטיסטיקות כדור (רץ תמיד כדי שהנתונים יעבדו)
 		if ballStatsActive and statsFrame.Visible then
 			if currentSpeed > peakSpeed then
 				peakSpeed = currentSpeed
@@ -700,15 +700,13 @@ RunService.RenderStepped:Connect(function()
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
 		end
 		
-		-- Auto Parry מוקדם ודינמי מותאם למהירות האולטרה של הכדור
+		-- Auto Parry מוקדם ודינמי: מופעל אך ורק אם autoParryActive הוא true!
 		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
 			local rootPart = char.HumanoidRootPart
 			local distance = (ball.Position - rootPart.Position).Magnitude
-			local ballVel = ball.AssemblyLinearVelocity
 			
-			-- חישוב זמן הגעה (Time to Impact) כדי לזהות כדורים מהירים לפני שהם פוגעים בך
-			-- ככל שהמהירות עולה, הטווח גדל משמעותית כדי להכות מוקדם
-			local dynamicThreshold = math.clamp(20 + (currentSpeed * 0.08), 20, 65)
+			-- טווח מוקדם מאוד שגדל באופן אגרסיבי ככל שהכדור מהיר יותר (עד 90 מטר)
+			local dynamicThreshold = math.clamp(25 + (currentSpeed * 0.12), 25, 90)
 			
 			if distance <= dynamicThreshold then
 				pcall(function()
