@@ -5,7 +5,6 @@ local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 local pGui = player:WaitForChild("PlayerGui")
@@ -29,11 +28,9 @@ local invisibleActive = false
 local ballStatsActive = false
 local darkLightingActive = false
 local lightLightingActive = false
-local eSpamActive = false
-local autoParryActive = false
 
 -- ערכים נוכחיים להגדרות
-local currentSavedSpeed = 30
+local currentSavedSpeed = 20
 local currentSavedJump = 50
 local currentSavedFOV = 70
 
@@ -64,7 +61,7 @@ frameStroke.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -50, 0, 40)
 title.Position = UDim2.new(0, 15, 0, 5)
-title.Text = "⚡ SPEED & BLADE HUB"
+title.Text = "⚡ SPEED & BLADE HUB (SAFE)"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 17
@@ -141,7 +138,7 @@ rightList.Parent = rightCol
 -- 3. פונקציות תנועה ומצלמה
 ----------------------------------------------------
 local function setSpeed(newSpeed)
-	currentSavedSpeed = math.clamp(newSpeed, 16, 100)
+	currentSavedSpeed = math.clamp(newSpeed, 16, 40)
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
@@ -150,7 +147,7 @@ local function setSpeed(newSpeed)
 end
 
 local function setJumpPower(newPower)
-	currentSavedJump = math.clamp(newPower, 50, 120)
+	currentSavedJump = math.clamp(newPower, 50, 100)
 	local char = player.Character
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
@@ -346,8 +343,8 @@ btnCorner.Parent = resetPeakBtn
 ----------------------------------------------------
 -- 6. הרכבת האלמנטים בעמודות
 ----------------------------------------------------
-createSlider(leftCol, "⚡ מהירות", 16, 100, 30, 1, function(val) setSpeed(val) end)
-createSlider(leftCol, "🦘 גובה קפיצה", 50, 120, 50, 2, function(val) setJumpPower(val) end)
+createSlider(leftCol, "⚡ מהירות בטוחה", 16, 40, 20, 1, function(val) setSpeed(val) end)
+createSlider(leftCol, "🦘 גובה קפיצה", 50, 100, 50, 2, function(val) setJumpPower(val) end)
 createSlider(leftCol, "👁️ FOV", 70, 120, 70, 3, function(val) setFOV(val) end)
 
 local infJumpBtn = createButton(leftCol, "♾️ Inf Jump: כבוי", 4, function() end)
@@ -401,57 +398,6 @@ end
 
 ballStatsBtn.MouseButton1Click:Connect(function()
 	setBallStats(not ballStatsActive)
-end)
-
-local eSpamBtn = createButton(leftCol, "⚡ E-Spam: כבוי", 6, function() end)
-
-local function setESpam(state)
-	eSpamActive = state
-	if eSpamActive then
-		eSpamBtn.Text = "✅ E-Spam: פעיל"
-		eSpamBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-		
-		task.spawn(function()
-			while eSpamActive do
-				pcall(function()
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-					task.wait(0.01)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-				end)
-				task.wait(0.04)
-			end
-		end)
-	else
-		eSpamBtn.Text = "⚡ E-Spam: כבוי"
-		eSpamBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-		pcall(function()
-			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-		end)
-	end
-end
-
-eSpamBtn.MouseButton1Click:Connect(function()
-	setESpam(not eSpamActive)
-end)
-
-local autoParryBtn = createButton(leftCol, "🛡️ Auto Parry: כבוי", 7, function() end)
-
-local function setAutoParry(state)
-	autoParryActive = state
-	if autoParryActive then
-		autoParryBtn.Text = "✅ Auto Parry: פעיל"
-		autoParryBtn.BackgroundColor3 = Color3.fromRGB(140, 50, 200)
-	else
-		autoParryBtn.Text = "🛡️ Auto Parry: כבוי"
-		autoParryBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 48)
-		pcall(function()
-			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-		end)
-	end
-end
-
-autoParryBtn.MouseButton1Click:Connect(function()
-	setAutoParry(not autoParryActive)
 end)
 
 local function applyKorblox()
@@ -596,7 +542,6 @@ local resetAllBtn = createButton(rightCol, "🛑 איפוס הכל", 6, function
 resetAllBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 60)
 
 local peakSpeed = 0
-local lastParryTick = 0
 
 resetPeakBtn.MouseButton1Click:Connect(function()
 	peakSpeed = 0
@@ -631,8 +576,6 @@ end
 
 RunService.RenderStepped:Connect(function()
 	local ball = getBall()
-	local char = player.Character
-	
 	if ball and ball:IsA("BasePart") then
 		local currentSpeed = math.floor(ball.AssemblyLinearVelocity.Magnitude)
 		
@@ -642,30 +585,6 @@ RunService.RenderStepped:Connect(function()
 				peakSpeedLabel.Text = "🔥 Peak Speed: " .. tostring(peakSpeed)
 			end
 			currentSpeedLabel.Text = "⚡ Speed: " .. tostring(currentSpeed)
-		end
-		
-		if autoParryActive and char and char:FindFirstChild("HumanoidRootPart") then
-			local rootPart = char.HumanoidRootPart
-			local distance = (ball.Position - rootPart.Position).Magnitude
-			local dynamicThreshold = math.clamp(40 + (currentSpeed * 0.22), 45, 150)
-			
-			if distance <= dynamicThreshold then
-				local directionToPlayer = (rootPart.Position - ball.Position).Unit
-				local ballVelocityDir = ball.AssemblyLinearVelocity.Unit
-				local dotProduct = ballVelocityDir:Dot(directionToPlayer)
-				
-				if dotProduct > 0.1 then
-					local currentTime = tick()
-					if currentTime - lastParryTick > 0.35 then
-						lastParryTick = currentTime
-						pcall(function()
-							VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-							task.wait(0.01)
-							VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-						end)
-					end
-				end
-			end
 		end
 	else
 		if ballStatsActive and statsFrame.Visible then
@@ -680,8 +599,6 @@ resetAllBtn.MouseButton1Click:Connect(function()
 	setHeadless(false)
 	setInvisible(false)
 	setBallStats(false)
-	setESpam(false)
-	setAutoParry(false)
 	
 	darkLightingActive = false
 	darkBtn.Text = "🌒 מצב כהה: כבוי"
@@ -693,7 +610,7 @@ resetAllBtn.MouseButton1Click:Connect(function()
 
 	restoreDefaultLighting()
 
-	speedUpdateFunc(30)
+	speedUpdateFunc(20)
 	jumpUpdateFunc(50)
 	fovUpdateFunc(70)
 	peakSpeed = 0
@@ -759,7 +676,7 @@ task.spawn(function()
 	local introLabel = Instance.new("TextLabel")
 	introLabel.Size = UDim2.new(1, 0, 0.35, 0)
 	introLabel.Position = UDim2.new(0, 0, 0.1, 0)
-	introLabel.Text = "⚡ MY-SCRIPT ⚡"
+	introLabel.Text = "⚡ SAFE SCRIPT ⚡"
 	introLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	introLabel.BackgroundTransparency = 1
 	introLabel.TextSize = 26
@@ -794,7 +711,7 @@ task.spawn(function()
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.35, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
-	subLabel.Text = "LOADING INPUT MODULES [75%]"
+	subLabel.Text = "LOADING SAFE FEATURES [75%]"
 	TweenService:Create(barFill, TweenInfo.new(0.6), {Size = UDim2.new(0.75, 0, 1, 0)}):Play()
 
 	task.wait(0.6)
