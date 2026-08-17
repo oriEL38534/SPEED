@@ -38,7 +38,7 @@ frameCorner.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "הסקריפט שלי"
+title.Text = "הסקריפט שלי (Safe)"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.TextSize = 16
@@ -57,7 +57,7 @@ closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = frame
 
--- כפתור צף להצגה/הסתרה (Toggle Button)
+-- כפתור צף להצגה/הסתרה
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 85, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
@@ -125,7 +125,7 @@ createButton("איפוס מהירות (16)", 170, function() setSpeed(16) end)
 local spamBtn = createButton("⚡ הפעל ספאם [R]", 215, function() end)
 local stopSpamBtn = createButton("🔴 כבה ספאם", 255, function() end)
 
--- עצירה מוחלטת והריסת כל ה-Threads הקיים
+-- עצירה מוחלטת
 local function stopAllSpam()
 	spamActive = false
 	currentSessionID = currentSessionID + 1
@@ -133,7 +133,7 @@ local function stopAllSpam()
 	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 end
 
--- הפעלת ספאם עם השהיה בטוחה נגד BAC Kick
+-- הפעלת ספאם עם השהיה אנושית דינמית
 local function startSpam()
 	stopAllSpam()
 	
@@ -148,10 +148,10 @@ local function startSpam()
 		while spamActive and currentSessionID == myID do
 			pcall(function()
 				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait(0.04)
+				task.wait(math.random(35, 50) / 1000) -- השהיה דינמית בלחיצה
 				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 			end)
-			task.wait(0.08) -- השהיה בטוחה יותר נגד זיהוי Anti-Cheat
+			task.wait(math.random(110, 140) / 1000) -- קצב אנושי למניעת עקיפת Anti-Cheat BAC
 		end
 	end)
 end
