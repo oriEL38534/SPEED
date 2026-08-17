@@ -39,7 +39,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = pGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 480, 0, 520) -- הוקטן מעט כי הסרנו פריטים
+frame.Size = UDim2.new(0, 480, 0, 520)
 frame.Position = UDim2.new(0.5, -240, 0.15, 0)
 frame.BackgroundColor3 = Color3.fromRGB(22, 18, 29)
 frame.BorderSizePixel = 0
