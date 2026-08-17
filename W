@@ -1,13 +1,42 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
--- משתנים לניהול מצבים
-local spamActive = false
+-- משתנים לניהול מצב
 local infJumpActive = false
-local currentSessionID = 0
 local infJumpConnection = nil
+local currentThemeIndex = 1
+
+-- הגדרת ערכות הנושא (Themes)
+local themes = {
+	{
+		Name = "עיצוב: כהה (Dark)",
+		FrameBg = Color3.fromRGB(18, 18, 18),
+		FrameBorder = Color3.fromRGB(45, 45, 45),
+		TitleColor = Color3.fromRGB(240, 240, 240),
+		BtnBg = Color3.fromRGB(32, 32, 32),
+		BtnText = Color3.fromRGB(230, 230, 230),
+		ActiveBtnBg = Color3.fromRGB(35, 90, 45)
+	},
+	{
+		Name = "עיצוב: בהיר (Light)",
+		FrameBg = Color3.fromRGB(240, 240, 240),
+		FrameBorder = Color3.fromRGB(190, 190, 190),
+		TitleColor = Color3.fromRGB(20, 20, 20),
+		BtnBg = Color3.fromRGB(215, 215, 215),
+		BtnText = Color3.fromRGB(10, 10, 10),
+		ActiveBtnBg = Color3.fromRGB(110, 190, 120)
+	},
+	{
+		Name = "עיצוב: ברירת מחדל",
+		FrameBg = Color3.fromRGB(30, 30, 30),
+		FrameBorder = Color3.fromRGB(60, 60, 60),
+		TitleColor = Color3.fromRGB(255, 255, 255),
+		BtnBg = Color3.fromRGB(48, 48, 48),
+		BtnText = Color3.fromRGB(255, 255, 255),
+		ActiveBtnBg = Color3.fromRGB(40, 120, 50)
+	}
+}
 
 -- ניקוי ממשק ישן אם קיים
 local pGui = player:WaitForChild("PlayerGui")
@@ -23,11 +52,8 @@ screenGui.Parent = pGui
 
 -- יצירת המסגרת הראשית
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 400)
+frame.Size = UDim2.new(0, 220, 0, 360)
 frame.Position = UDim2.new(0.05, 0, 0.25, 0)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-frame.BorderSizePixel = 1
-frame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
@@ -40,8 +66,7 @@ frameCorner.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -30, 0, 40)
 title.Position = UDim2.new(0, 12, 0, 0)
-title.Text = "הסקריפט שלי (E Fixed)"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Text = "תפריט שליטה"
 title.BackgroundTransparency = 1
 title.TextSize = 16
 title.Font = Enum.Font.SourceSansBold
@@ -53,7 +78,6 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 40)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
 closeBtn.Text = "✕"
-closeBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.SourceSansBold
@@ -64,10 +88,6 @@ local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 85, 0, 35)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
 toggleBtn.Text = "⚡ תפריט"
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-toggleBtn.BorderSizePixel = 1
-toggleBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
 toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.Active = true
@@ -94,14 +114,14 @@ local function setSpeed(newSpeed)
 	end
 end
 
--- פונקציית עזר ליצירת כפתורים
+-- מערך לרשימת כפתורים לעדכון עיצוב דינמי
+local allButtons = {}
+
 local function createButton(text, positionY, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.86, 0, 0, 32)
 	btn.Position = UDim2.new(0.07, 0, 0, positionY)
 	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(240, 240, 240)
-	btn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
 	btn.BorderSizePixel = 0
 	btn.TextSize = 15
 	btn.Font = Enum.Font.SourceSansSemibold
@@ -114,6 +134,8 @@ local function createButton(text, positionY, onClick)
 	btn.MouseButton1Click:Connect(function()
 		onClick(btn)
 	end)
+	
+	table.insert(allButtons, btn)
 	return btn
 end
 
@@ -123,53 +145,52 @@ createButton("מהירות 100", 85, function() setSpeed(100) end)
 createButton("מהירות 200", 125, function() setSpeed(200) end)
 createButton("איפוס מהירות (16)", 165, function() setSpeed(16) end)
 
--- כפתורי ספאם
-local spamBtn = createButton("⚡ הפעל ספאם [R]", 205, function() end)
-
 -- כפתור Infinite Jump
-local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 245, function() end)
+local infJumpBtn = createButton("🦘 Infinite Jump: כבוי", 205, function() end)
 
--- כפתור עצירה מוחלטת
-local stopAllBtn = createButton("🛑 עצור הכל לחלוטין", 290, function() end)
-stopAllBtn.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
+-- כפתור החלפת ערכת נושא (Theme)
+local themeBtn = createButton("🎨 עיצוב: כהה (Dark)", 250, function() end)
 
--- פונקציות עצירה והפעלה לספאם
-local function stopSpam()
-	spamActive = false
-	currentSessionID = currentSessionID + 1
-	spamBtn.Text = "⚡ הפעל ספאם [R]"
-	spamBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-end
+-- כפתור איפוס מלא
+local resetAllBtn = createButton("🛑 איפוס הכל", 295, function() end)
 
-local function startSpam()
-	stopSpam()
-	spamActive = true
-	currentSessionID = currentSessionID + 1
-	local myID = currentSessionID
+-- פונקציה להחלת ערכת נושא
+local function applyTheme(themeIndex)
+	local theme = themes[themeIndex]
 	
-	spamBtn.Text = "✅ ספאם E פעיל [R]"
-	spamBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+	frame.BackgroundColor3 = theme.FrameBg
+	frame.BorderColor3 = theme.FrameBorder
+	title.TextColor3 = theme.TitleColor
+	closeBtn.TextColor3 = theme.TitleColor
 	
-	task.spawn(function()
-		while spamActive and currentSessionID == myID do
-			pcall(function()
-				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-				task.wait(0.015)
-				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-			end)
-			-- קצב מותאם למניעת זיהוי BAC Anti-Cheat
-			task.wait(0.045)
+	toggleBtn.BackgroundColor3 = theme.FrameBg
+	toggleBtn.BorderColor3 = theme.FrameBorder
+	toggleBtn.TextColor3 = theme.TitleColor
+	
+	themeBtn.Text = "🎨 " .. theme.Name
+
+	for _, btn in ipairs(allButtons) do
+		if btn == infJumpBtn and infJumpActive then
+			btn.BackgroundColor3 = theme.ActiveBtnBg
+		elseif btn == resetAllBtn then
+			btn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
+			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		else
+			btn.BackgroundColor3 = theme.BtnBg
+			btn.TextColor3 = theme.BtnText
 		end
-	end)
+	end
 end
 
-local function toggleSpam()
-	if spamActive then stopSpam() else startSpam() end
-end
+themeBtn.MouseButton1Click:Connect(function()
+	currentThemeIndex = currentThemeIndex + 1
+	if currentThemeIndex > #themes then
+		currentThemeIndex = 1
+	end
+	applyTheme(currentThemeIndex)
+end)
 
-spamBtn.MouseButton1Click:Connect(toggleSpam)
-
--- לוגיקה עבור Infinite Jump
+-- לוגיקת Infinite Jump
 local function disableInfJump()
 	infJumpActive = false
 	if infJumpConnection then
@@ -177,14 +198,14 @@ local function disableInfJump()
 		infJumpConnection = nil
 	end
 	infJumpBtn.Text = "🦘 Infinite Jump: כבוי"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+	applyTheme(currentThemeIndex)
 end
 
 local function enableInfJump()
 	disableInfJump()
 	infJumpActive = true
 	infJumpBtn.Text = "✅ Infinite Jump: פעיל"
-	infJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 40)
+	applyTheme(currentThemeIndex)
 	
 	infJumpConnection = UserInputService.JumpRequest:Connect(function()
 		if infJumpActive then
@@ -203,19 +224,11 @@ infJumpBtn.MouseButton1Click:Connect(function()
 	if infJumpActive then disableInfJump() else enableInfJump() end
 end)
 
--- עצירה מוחלטת של כל הרכיבים
-local function killAllScriptFunctions()
-	stopSpam()
+-- איפוס מלא
+resetAllBtn.MouseButton1Click:Connect(function()
 	disableInfJump()
 	setSpeed(16)
-end
-
-stopAllBtn.MouseButton1Click:Connect(killAllScriptFunctions)
-
--- מקש R להפעלת/כיבוי ספאם
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end
-	if input.KeyCode == Enum.KeyCode.R then
-		toggleSpam()
-	end
 end)
+
+-- החלת ערכת נושא התחלתית
+applyTheme(1)
